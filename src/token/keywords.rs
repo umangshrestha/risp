@@ -1,6 +1,8 @@
 use super::Token;
 
 pub fn lookup_identifiertype(ident: String) -> Token {
+    // 1. the language is case sensitive
+    // 2. all the keywords have full lowercase 
     match ident.as_str() {
         "true" => Token::True,
         "false" => Token::False,
@@ -22,7 +24,7 @@ mod tests {
 
     #[test]
     fn test_keywords() {
-        // precedence level should be equal for the following token
+        // following string should be token
         let is_keyword = vec![
             // Lowest
             ("true", Token::True),
@@ -42,19 +44,18 @@ mod tests {
     }
 
     fn test_identifier() {
-        // precedence level should be equal for the following token
+        // following string should be identifiers
         let is_keyword = vec![
             "True", "TRUE", //
             "False", "FALSE", //
             "Fn", "fN", "FN", //
             "If", "iF", "IF", //
-            "Let", "lEt", "leT", "lET", "LEt", "LeT", "LET",//
-            "For", "fOr", "foR", "fOR", "FOr", "FoR", "FOR"//
+            "Let", "lEt", "leT", "lET", "LEt", "LeT", "LET", //
+            "For", "fOr", "foR", "fOR", "FOr", "FoR", "FOR", //
         ];
-        is_keyword.iter()
-            .map(|x| (
-                x.to_string(), 
-                Token::Identifier(x.to_string())))
-            .for_each(|x| assert_eq!(lookup_identifiertype(x.0), x.1 ));
+        is_keyword
+            .iter()
+            .map(|x| (x.to_string(), Token::Identifier(x.to_string())))
+            .for_each(|x| assert_eq!(lookup_identifiertype(x.0), x.1));
     }
 }
