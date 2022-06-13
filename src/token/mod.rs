@@ -5,5 +5,8 @@ mod exception;
 pub use exception::Exception;
 
 mod precedence;
+pub use precedence::get_precedence;
 use precedence::Precedence;
-pub use precedence::get_precedence; 
+
+mod keywords;
+pub use keywords::lookup_identifiertype;

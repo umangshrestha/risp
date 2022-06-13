@@ -1,3 +1,5 @@
+use super::Token;
+
 #[repr(u8)]
 pub enum Precedence {
     Lowest,
@@ -8,20 +10,19 @@ pub enum Precedence {
     Higher,
     Highest,
 }
- 
-use crate::Token;
+
 pub fn get_precedence(token: &Token) -> u8 {
     let p = match token {
-        Token::Eq     => Precedence::Lower, // ==
-        Token::Ne     => Precedence::Lower, // !=
-        Token::Lt     => Precedence::Low,   // <=
-        Token::Gt     => Precedence::Low,   // >=
-        Token::Plus   => Precedence::Mid,   // +
-        Token::Minus  => Precedence::Mid,   // -
-        Token::Not    => Precedence::Mid,   // !
-        Token::Times  => Precedence::High,  // *
-        Token::Divide => Precedence::High,  // /
-        Token::LParen => Precedence::Higher,// function ()
+        Token::Eq => Precedence::Lower,       // ==
+        Token::Ne => Precedence::Lower,       // !=
+        Token::Lt => Precedence::Low,         // <=
+        Token::Gt => Precedence::Low,         // >=
+        Token::Plus => Precedence::Mid,       // +
+        Token::Minus => Precedence::Mid,      // -
+        Token::Not => Precedence::Mid,        // !
+        Token::Times => Precedence::High,     // *
+        Token::Divide => Precedence::High,    // /
+        Token::LParen => Precedence::Higher,  // function ()
         Token::LBrace => Precedence::Highest, // index []
         _ => Precedence::Lowest,
     };
@@ -30,13 +31,13 @@ pub fn get_precedence(token: &Token) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::Token;
     use super::get_precedence;
+    use super::Token;
 
     #[test]
     fn test_precedence_equal() {
         // precedence level should be equal for the following token
-        let is_equal =  vec![
+        let is_equal = vec![
             // Lowest
             (Token::Mod, Token::RShift),
             (Token::LShift, Token::RShift),
@@ -61,14 +62,15 @@ mod tests {
             // Highest
             (Token::LBrace, Token::LBrace),
         ];
-        is_equal.iter().for_each(|x| 
-            assert_eq!(get_precedence(&x.0), get_precedence(&x.1)));
+        is_equal
+            .iter()
+            .for_each(|x| assert_eq!(get_precedence(&x.0), get_precedence(&x.1)));
     }
 
     #[test]
     fn test_precedence_not_equal() {
         // precedence level should be equal for the following token
-        let is_equal =  vec![
+        let is_greter = vec![
             // Lowest to Lower
             (Token::Mod, Token::Eq),
             (Token::LShift, Token::Ne),
@@ -82,10 +84,10 @@ mod tests {
             (Token::Lt, Token::Plus),
             (Token::Gt, Token::Minus),
             (Token::Gt, Token::Not),
-             // mid to higher
-             (Token::Lt, Token::LParen),
-             // mid to highest
-             (Token::Gt, Token::LBrace),
+            // mid to higher
+            (Token::Lt, Token::LParen),
+            // mid to highest
+            (Token::Gt, Token::LBrace),
             // Mid to high
             (Token::Plus, Token::Times),
             (Token::Minus, Token::Divide),
@@ -100,13 +102,12 @@ mod tests {
             // Higher to highest
             (Token::LParen, Token::LBrace),
         ];
-        is_equal.iter().for_each(|x|  {
+        is_greter.iter().for_each(|x| {
             let (a, b) = x;
             let a = get_precedence(a);
-            let b =  get_precedence(b);
+            let b = get_precedence(b);
             assert_ne!(a, b);
             assert!(a < b)
         });
-
     }
 }
