@@ -56,7 +56,6 @@ pub enum Token {
     ModEq,
     LAnd,
     LOr,
-
 }
 
 impl fmt::Display for Token {

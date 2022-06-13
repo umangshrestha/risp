@@ -25,11 +25,8 @@ pub fn get_precedence(token: &Token) -> u8 {
         Token::LBrace => Precedence::Highest, // index []
         _ => Precedence::Lowest,
     };
-    
     return p as u8;
 }
-
-
 
 #[cfg(test)]
 mod tests {
