@@ -1,25 +1,26 @@
 use super::Token;
 
-pub fn lookup_identifiertype(ident: String) -> Token {
-    // 1. the language is case sensitive
-    // 2. all the keywords have full lowercase 
-    match ident.as_str() {
-        "true" => Token::True,
-        "false" => Token::False,
-        "fn" => Token::Function,
-        "let" => Token::Let,
-        "else" => Token::Else,
-        "if" => Token::If,
-        "for" => Token::For,
-        "while" => Token::While,
-        "return" => Token::Return,
-        _ => Token::Identifier(ident),
+impl Token {
+    pub fn lookup_identifiertype(ident: String) -> Token {
+        // 1. the language is case sensitive
+        // 2. all the keywords have full lowercase
+        match ident.as_str() {
+            "true" => Token::True,
+            "false" => Token::False,
+            "fn" => Token::Function,
+            "let" => Token::Let,
+            "else" => Token::Else,
+            "if" => Token::If,
+            "for" => Token::For,
+            "while" => Token::While,
+            "return" => Token::Return,
+            _ => Token::Identifier(ident),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::lookup_identifiertype;
     use super::Token;
 
     #[test]
@@ -39,7 +40,7 @@ mod tests {
         ];
         is_keyword.iter().for_each(|x| {
             let ident = x.0.to_string();
-            assert_eq!(lookup_identifiertype(ident), x.1)
+            assert_eq!(Token::lookup_identifiertype(ident), x.1)
         });
     }
 
@@ -56,6 +57,6 @@ mod tests {
         is_keyword
             .iter()
             .map(|x| (x.to_string(), Token::Identifier(x.to_string())))
-            .for_each(|x| assert_eq!(lookup_identifiertype(x.0), x.1));
+            .for_each(|x| assert_eq!(Token::lookup_identifiertype(x.0), x.1));
     }
 }

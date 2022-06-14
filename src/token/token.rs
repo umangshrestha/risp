@@ -61,7 +61,7 @@ pub enum Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Token::Unknown(x) => write!(f, "unknown {:?}", String::from_utf8_lossy(&[*x])),
+            Token::Unknown(x) => write!(f, "unknown {:#?}", String::from_utf8_lossy(&[*x])),
             Token::Identifier(x) => write!(f, "${{{}}}", x),
             Token::String(x) => write!(f, "\"{}\"", x),
             Token::Int(x) => write!(f, "\"{}\"", x),
