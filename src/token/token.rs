@@ -4,7 +4,7 @@ use std::fmt;
 // used to give information about code
 #[derive(Debug, PartialEq)]
 pub enum Token {
-    Unknown(u8),        // Unknown symbol
+    Unknown(char),        // Unknown symbol
     Identifier(String), // variable
     String(String),     /* data types */
     Int(i64),
@@ -60,7 +60,7 @@ pub enum Token {
 impl Token {
     pub fn to_string(&self) -> String {
         match self {
-            Token::Unknown(x)    => format!("unknown {:#?}", String::from_utf8_lossy(&[*x])),
+            Token::Unknown(x)    => format!("unknown {:#?}",*x),
             Token::Identifier(x) => format!("${}", x),
             Token::String(x)     => format!("\"{}\"", x),
             Token::Int(x)        => x.to_string(),
