@@ -1,15 +1,12 @@
-use rlisp::{Token, Lexer, Exception};
+use rlisp::{Token, Lexer, Exception, Parser};
 
 
 fn main() {
     let file_name = "example/hello_world.lisp";
-    let mut lexer = Lexer::from_file(file_name).unwrap();
-    
-    loop {  
-        let next_token = lexer.next_token();
-        if next_token == Token::Eof {
-            break;
-        }
-        println!("{}", next_token);
-    }
+    let data = "println(\"Hello, World\")";
+
+    let mut lex = Lexer::new(data).unwrap();
+    let mut parse = Parser::new(lex);
+    parse.parse()
+
 }

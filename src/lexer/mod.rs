@@ -150,98 +150,18 @@ impl Lexer {
             b'(' => Token::LParen,
             b')' => Token::RParen,
             b';' => Token::Semicolon,
-            b'+' => {
-                if self._is_next_ch(b'=') {
-                    Token::PlusEq
-                } else {
-                    Token::Plus
-                }
-            }
-            b'-' => {
-                if self._is_next_ch(b'=') {
-                    Token::SubEq
-                } else {
-                    Token::Minus
-                }
-            }
-            b'*' => {
-                if self._is_next_ch(b'=') {
-                    Token::MulEq
-                } else {
-                    Token::Times
-                }
-            }
-            b'/' => {
-                if self._is_next_ch(b'=') {
-                    Token::DivEq
-                } else {
-                    Token::Divide
-                }
-            }
-            b'%' => {
-                if self._is_next_ch(b'=') {
-                    Token::ModEq
-                } else {
-                    Token::Mod
-                }
-            }
-            b'=' => {
-                if self._is_next_ch(b'=') {
-                    Token::Eq
-                } else {
-                    Token::Assign
-                }
-            }
-            b'!' => {
-                if self._is_next_ch(b'=') {
-                    Token::Ne
-                } else {
-                    Token::Not
-                }
-            }
-            b'^' => {
-                if self._is_next_ch(b'=') {
-                    Token::XorEq
-                } else {
-                    Token::Xor
-                }
-            }
-            b'&' => {
-                if self._is_next_ch(b'=') {
-                    Token::AndEq
-                } else if self._is_next_ch(b'&') {
-                    Token::LAnd
-                } else {
-                    Token::And
-                }
-            }
-            b'|' => {
-                if self._is_next_ch(b'=') {
-                    Token::OrEq
-                } else if self._is_next_ch(b'|') {
-                    Token::LOr
-                } else {
-                    Token::Or
-                }
-            }
-            b'<' => {
-                if self._is_next_ch(b'=') {
-                    Token::Le
-                } else if self._is_next_ch(b'<') {
-                    Token::LShift
-                } else {
-                    Token::Lt
-                }
-            }
-            b'>' => {
-                if self._is_next_ch(b'=') {
-                    Token::Ge
-                } else if self._is_next_ch(b'>') {
-                    Token::RShift
-                } else {
-                    Token::Gt
-                }
-            }
+            b'+' => if self._is_next_ch(b'=') { Token::PlusEq } else { Token::Plus   },
+            b'-' => if self._is_next_ch(b'=') { Token::SubEq  } else { Token::Minus  },
+            b'*' => if self._is_next_ch(b'=') { Token::MulEq  } else { Token::Times  },
+            b'/' => if self._is_next_ch(b'=') { Token::DivEq  } else { Token::Divide },
+            b'%' => if self._is_next_ch(b'=') { Token::ModEq  } else { Token::Mod    },
+            b'=' => if self._is_next_ch(b'=') { Token::Eq     } else { Token::Assign },
+            b'!' => if self._is_next_ch(b'=') { Token::Ne     } else { Token::Not    },
+            b'^' => if self._is_next_ch(b'=') { Token::XorEq  } else { Token::Xor    },
+            b'&' => if self._is_next_ch(b'=') { Token::AndEq  } else if self._is_next_ch(b'&') { Token::LAnd   } else { Token::And },
+            b'|' => if self._is_next_ch(b'=') { Token::OrEq   } else if self._is_next_ch(b'|') { Token::LOr    } else { Token::Or  },
+            b'<' => if self._is_next_ch(b'=') { Token::Le     } else if self._is_next_ch(b'<') { Token::LShift } else { Token::Lt  },
+            b'>' => if self._is_next_ch(b'=') { Token::Ge     } else if self._is_next_ch(b'>') { Token::RShift } else { Token::Gt  },
             x => Token::Unknown(x),
         })
     }

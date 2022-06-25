@@ -16,3 +16,9 @@ impl fmt::Display for Exception {
         }
     }
 }
+
+
+
+pub struct ErrorMessage {
+
+}
