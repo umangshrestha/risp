@@ -1,6 +1,4 @@
-use std::fmt;
-
-// Tokens are the smallest, discreate and unique information that can be
+// Tokens are the smallest, discrete and unique information that can be
 // used to give information about code
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -56,6 +54,8 @@ pub enum Token {
     LAnd,
     LOr,
 }
+
+crate::add_fmt_print!(Token);
 
 impl Token {
     pub fn to_string(&self) -> String {
@@ -115,8 +115,3 @@ impl Token {
     }
 }
 
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
