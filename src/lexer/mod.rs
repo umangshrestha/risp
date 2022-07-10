@@ -147,8 +147,8 @@ impl Lexer {
             '^' => if self._is_next_ch('=') { Token::XorEq  } else { Token::Xor    },
             '&' => if self._is_next_ch('=') { Token::AndEq  } else if self._is_next_ch('&') { Token::LAnd   } else { Token::And },
             '|' => if self._is_next_ch('=') { Token::OrEq   } else if self._is_next_ch('|') { Token::LOr    } else { Token::Or  },
-            '<' => if self._is_next_ch('=') { Token::Le     } else if self._is_next_ch('<') { Token::LShift } else { Token::Lt  },
-            '>' => if self._is_next_ch('=') { Token::Ge     } else if self._is_next_ch('>') { Token::RShift } else { Token::Gt  },
+            '<' => if self._is_next_ch('=') { Token::Lte     } else if self._is_next_ch('<') { Token::LShift } else { Token::Lt  },
+            '>' => if self._is_next_ch('=') { Token::Gte     } else if self._is_next_ch('>') { Token::RShift } else { Token::Gt  },
             x => Token::Unknown(x),
         })
     }

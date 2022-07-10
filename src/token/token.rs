@@ -1,8 +1,10 @@
+use std::fmt;
+
 // Tokens are the smallest, discrete and unique information that can be
 // used to give information about code
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
-    Unknown(char),        // Unknown symbol
+    Unknown(char),      // Unknown symbol
     Identifier(String), // variable
     String(String),     /* data types */
     Int(i64),
@@ -40,8 +42,8 @@ pub enum Token {
     Gt,
     Eq,
     Ne,
-    Le,
-    Ge,
+    Lte,
+    Gte,
     Eof,
     PlusEq,
     DivEq,
@@ -55,63 +57,61 @@ pub enum Token {
     LOr,
 }
 
-crate::add_fmt_print!(Token);
-
-impl Token {
-    pub fn to_string(&self) -> String {
+impl fmt::Display for Token {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Token::Unknown(x)    => format!("unknown {:#?}",*x),
-            Token::Identifier(x) => format!("${}", x),
-            Token::String(x)     => format!("\"{}\"", x),
-            Token::Int(x)        => x.to_string(),
-            Token::Float(x)      => x.to_string(),
-            Token::True          => "True".to_string(),
-            Token::False         => "False".to_string(),
-            Token::Comma         => ".to_string(),".to_string(),
-            Token::Semicolon     => ";".to_string(),
-            Token::LParen        => "(".to_string(),
-            Token::RParen        => ")".to_string(),
-            Token::LBrace        => "[".to_string(),
-            Token::RBrace        => "]".to_string(),
-            Token::LCurly        => "{{".to_string(),
-            Token::RCurly        => "}}".to_string(),
-            Token::Plus          => "+".to_string(),
-            Token::Minus         => "-".to_string(),
-            Token::Times         => "*".to_string(),
-            Token::Divide        => "/".to_string(),
-            Token::Assign        => "=".to_string(),
-            Token::Mod           => "%".to_string(),
-            Token::PlusEq        => "+=".to_string(),
-            Token::SubEq         => "-=".to_string(),
-            Token::MulEq         => "*=".to_string(),
-            Token::DivEq         => "/=".to_string(),
-            Token::ModEq         => "%=".to_string(),
-            Token::Function      => "fn".to_string(),
-            Token::Let           => "let".to_string(),
-            Token::If            => "if".to_string(),
-            Token::Else          => "else".to_string(),
-            Token::Return        => "return".to_string(),
-            Token::For           => "for".to_string(),
-            Token::While         => "while".to_string(),
-            Token::Not           => "!".to_string(),
-            Token::And           => "&".to_string(),
-            Token::Or            => "|".to_string(),
-            Token::Xor           => "^".to_string(),
-            Token::AndEq         => "&=".to_string(),
-            Token::OrEq          => "|=".to_string(),
-            Token::LAnd          => "&&".to_string(),
-            Token::LOr           => "||".to_string(),
-            Token::XorEq         => "^=".to_string(),
-            Token::Gt            => ">".to_string(),
-            Token::Lt            => "<".to_string(),
-            Token::Eq            => "==".to_string(),
-            Token::Ne            => "!=".to_string(),
-            Token::Le            => "=<".to_string(),
-            Token::Ge            => ">=".to_string(),
-            Token::LShift        => "<<".to_string(),
-            Token::RShift        => ">>".to_string(),
-            Token::Eof           => "EOF".to_string(),
+            Token::Unknown(x)    => write!(f, "unknown {:#?}", *x),
+            Token::Identifier(x) => write!(f, "${}", x),
+            Token::String(x)     => write!(f, "\"{}\"", x),
+            Token::Int(x)        => write!(f, "{}", x),
+            Token::Float(x)      => write!(f, "{}",x),
+            Token::True          => write!(f, "True"),
+            Token::False         => write!(f, "False"),
+            Token::Comma         => write!(f, "),"),
+            Token::Semicolon     => write!(f, ";"),
+            Token::LParen        => write!(f, "("),
+            Token::RParen        => write!(f, ")"),
+            Token::LBrace        => write!(f, "["),
+            Token::RBrace        => write!(f, "]"),
+            Token::LCurly        => write!(f, "{{"),
+            Token::RCurly        => write!(f, "}}"),
+            Token::Plus          => write!(f, "+"),
+            Token::Minus         => write!(f, "-"),
+            Token::Times         => write!(f, "*"),
+            Token::Divide        => write!(f, "/"),
+            Token::Assign        => write!(f, "="),
+            Token::Mod           => write!(f, "%"),
+            Token::PlusEq        => write!(f, "+="),
+            Token::SubEq         => write!(f, "-="),
+            Token::MulEq         => write!(f, "*="),
+            Token::DivEq         => write!(f, "/="),
+            Token::ModEq         => write!(f, "%="),
+            Token::Function      => write!(f, "fn"),
+            Token::Let           => write!(f, "let"),
+            Token::If            => write!(f, "if"),
+            Token::Else          => write!(f, "else"),
+            Token::Return        => write!(f, "return"),
+            Token::For           => write!(f, "for"),
+            Token::While         => write!(f, "while"),
+            Token::Not           => write!(f, "!"),
+            Token::And           => write!(f, "&"),
+            Token::Or            => write!(f, "|"),
+            Token::Xor           => write!(f, "^"),
+            Token::AndEq         => write!(f, "&="),
+            Token::OrEq          => write!(f, "|="),
+            Token::LAnd          => write!(f, "&&"),
+            Token::LOr           => write!(f, "||"),
+            Token::XorEq         => write!(f, "^="),
+            Token::Gt            => write!(f, ">"),
+            Token::Lt            => write!(f, "<"),
+            Token::Eq            => write!(f, "=="),
+            Token::Ne            => write!(f, "!="),
+            Token::Lte            => write!(f, "=<"),
+            Token::Gte            => write!(f, ">="),
+            Token::LShift        => write!(f, "<<"),
+            Token::RShift        => write!(f, ">>"),
+            Token::Eof           => write!(f, "EOF"),
         }
     }
 }
-

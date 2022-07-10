@@ -1,4 +1,4 @@
-use crate::add_fmt_print;
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum Exception {
@@ -7,14 +7,8 @@ pub enum Exception {
     SyntaxError(String),
 }
 
-add_fmt_print!(Exception);
-
-impl Exception {
-    fn to_string(&self) -> String {
-        match self {
-            Exception::FileNotFound(msg) => format!("FileNotFoundException:{:?}", msg),
-            Exception::ValueError(msg) => format!("ValueError:{:?}", msg),
-            Exception::SyntaxError(msg) => format!("SyntaxError:{:?}", msg),
-        }
+impl fmt::Display for Exception {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }

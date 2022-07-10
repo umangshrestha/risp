@@ -1,7 +1,8 @@
 use super::Token;
 
 #[repr(u8)]
-enum Precedence {
+#[derive(Debug, PartialEq, PartialOrd)]
+pub enum Precedence {
     Lowest,
     Lower,
     Low,
@@ -12,8 +13,8 @@ enum Precedence {
 }
 
 impl Token {
-    pub fn get_precedence(token: &Token) -> u8 {
-        let p = match token {
+    pub fn get_precedence(&self) -> Precedence {
+        let p = match self {
             Token::Eq => Precedence::Lower,       // ==
             Token::Ne => Precedence::Lower,       // !=
             Token::Lt => Precedence::Low,         // <=
@@ -27,7 +28,7 @@ impl Token {
             Token::LBrace => Precedence::Highest, // index []
             _ => Precedence::Lowest,
         };
-        return p as u8;
+        return p ;
     }
 }
 
@@ -65,7 +66,7 @@ mod tests {
         ];
         is_equal
             .iter()
-            .for_each(|x| assert_eq!(Token::get_precedence(&x.0), Token::get_precedence(&x.1)));
+            .for_each(|x| assert_eq!(x.0.get_precedence(), x.1.get_precedence()));
     }
 
     #[test]
@@ -105,8 +106,8 @@ mod tests {
         ];
         is_greter.iter().for_each(|x| {
             let (a, b) = x;
-            let a = Token::get_precedence(a);
-            let b = Token::get_precedence(b);
+            let a = a.get_precedence();
+            let b = b.get_precedence();
             assert_ne!(a, b);
             assert!(a < b)
         });
