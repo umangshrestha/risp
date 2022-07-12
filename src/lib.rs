@@ -5,7 +5,7 @@ mod lexer;
 pub use lexer::Lexer;
 
 mod ast;
-pub use ast::{Program, Statement, Expression, Literal};
+
 mod parser;
 pub use parser::Parser;
 

@@ -13,6 +13,7 @@ pub enum Token {
     False,
     Comma, /* Delimiter */
     Semicolon,
+    Colon,
     Function, /* Keyword */
     Let,
     Return,
@@ -68,7 +69,8 @@ impl fmt::Display for Token {
             Token::Float(x)      => write!(f, "{}",x),
             Token::True          => write!(f, "True"),
             Token::False         => write!(f, "False"),
-            Token::Comma         => write!(f, "),"),
+            Token::Comma         => write!(f, ","),
+            Token::Colon         => write!(f, ":"),
             Token::Semicolon     => write!(f, ";"),
             Token::LParen        => write!(f, "("),
             Token::RParen        => write!(f, ")"),

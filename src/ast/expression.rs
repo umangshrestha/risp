@@ -1,17 +1,27 @@
-use super::{Identifier, Infix, Literal, Prefix, Program};
+use super::{Identifier, Literal, Program};
+use crate::Token;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expression {
     Identifier(Identifier),
-    Prefix(Prefix, Box<Expression>),
-    Infix(Infix, Box<Expression>, Box<Expression>),
+    Literal(Literal),
+    Prefix {
+        op: Token,
+        lhs: Box<Expression>,
+    },
+    Infix {
+        op: Token,
+        lhs: Box<Expression>,
+        rhs: Box<Expression>,
+    },
     If {
         condition: Box<Expression>,
-        truthy: Program,
-        falsy: Option<Program>,
+        truth_block: Program,
+        false_block: Option<Program>,
     },
     Function {
-        argument: Vec<Identifier>,
+        name: Identifier,
+        arguments: Vec<Identifier>,
         body: Program,
     },
     Call {
@@ -23,5 +33,5 @@ pub enum Expression {
         index: Vec<Expression>,
     },
     HashMap(Vec<(Literal, Expression)>),
-    Array(Vec<(Literal, Expression)>),
+    Array(Vec<Expression>),
 }

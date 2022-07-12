@@ -4,31 +4,32 @@ use super::Token;
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Precedence {
     Lowest,
-    Lower,
-    Low,
-    Mid,
-    High,
-    Higher,
-    Highest,
+    Eq,
+    Lte,
+    Plus,
+    Product,
+    Prefix,
+    Call,
+    Index,
 }
 
 impl Token {
     pub fn get_precedence(&self) -> Precedence {
         let p = match self {
-            Token::Eq => Precedence::Lower,       // ==
-            Token::Ne => Precedence::Lower,       // !=
-            Token::Lt => Precedence::Low,         // <=
-            Token::Gt => Precedence::Low,         // >=
-            Token::Plus => Precedence::Mid,       // +
-            Token::Minus => Precedence::Mid,      // -
-            Token::Not => Precedence::Mid,        // !
-            Token::Times => Precedence::High,     // *
-            Token::Divide => Precedence::High,    // /
-            Token::LParen => Precedence::Higher,  // function ()
-            Token::LBrace => Precedence::Highest, // index []
+            Token::Eq => Precedence::Eq,          // ==
+            Token::Ne => Precedence::Eq,          // !=
+            Token::Lt => Precedence::Lte,         // <=
+            Token::Gt => Precedence::Lte,         // >=
+            Token::Plus => Precedence::Plus,      // +
+            Token::Times => Precedence::Product,  // *
+            Token::Divide => Precedence::Product, // /
+            Token::Not => Precedence::Prefix,     // !
+            Token::Minus => Precedence::Prefix,   // -
+            Token::LParen => Precedence::Call,    // function ()
+            Token::LBrace => Precedence::Index,   // index []
             _ => Precedence::Lowest,
         };
-        return p ;
+        return p;
     }
 }
 
@@ -53,8 +54,6 @@ mod tests {
             (Token::Gt, Token::Lt),
             // Mid
             (Token::Plus, Token::Plus),
-            (Token::Minus, Token::Minus),
-            (Token::Plus, Token::Minus),
             // High
             (Token::Times, Token::Times),
             (Token::Divide, Token::Divide),
@@ -92,7 +91,6 @@ mod tests {
             (Token::Gt, Token::LBrace),
             // Mid to high
             (Token::Plus, Token::Times),
-            (Token::Minus, Token::Divide),
             // mid to higher
             (Token::Plus, Token::LParen),
             // mid to highest
