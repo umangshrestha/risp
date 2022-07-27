@@ -5,7 +5,7 @@
 macro_rules! add_fmt_print {
     ($ident: ident) => {
         use std::fmt;
-1usize
+
         impl fmt::Display for $ident {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{}", self.to_string())

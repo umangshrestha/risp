@@ -1,4 +1,4 @@
-use super::{Identifier, Literal, Program};
+use super::{Identifier, Literal, Statement};
 use crate::Token;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -16,22 +16,22 @@ pub enum Expression {
     },
     If {
         condition: Box<Expression>,
-        truth_block: Program,
-        false_block: Option<Program>,
+        truth_block: Vec<Statement>,
+        false_block: Option<Vec<Statement>>,
     },
     Function {
         name: Identifier,
         arguments: Vec<Identifier>,
-        body: Program,
+        body: Vec<Statement>,
     },
     Call {
         function: Box<Expression>,
-        argument: Vec<Expression>,
+        arguments: Vec<Expression>,
     },
     Index {
         array: Box<Expression>,
-        index: Vec<Expression>,
+        index: Box<Expression>,
     },
-    HashMap(Vec<(Literal, Expression)>),
+    HashMap(Vec<(Expression, Expression)>),
     Array(Vec<Expression>),
 }
