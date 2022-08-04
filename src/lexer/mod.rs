@@ -71,11 +71,10 @@ impl Lexer {
             if self.ch == '\n' {
                 self.line_no += 1;
             }
-            self.data_pos+=1;        
         } else {
-
-            self.ch = '\x00'
+            self.ch = '\x00';
         };
+        self.data_pos+=1;        
     }
 
     // reduce next char pointer
@@ -162,7 +161,7 @@ impl Lexer {
             self._update_ch();
         }
         Ok(if is_float {
-            Token::Float(self.data_to_float(start_pos, self.data_pos)?)
+            Token::Float(self.data_to_float(start_pos, self.data_pos-1)?)
         } else {
             Token::Int(self.data_to_int(start_pos, self.data_pos - 1)?)
         })
@@ -273,6 +272,58 @@ mod tests {
             }
         })
     }
+    
+    #[test]
+    fn test_binary_op() {
+        let data = "let a = _a + 1.0;";
+        let mut lex = Lexer::new(data.to_string()).unwrap();
+
+        let expected_tokens = vec![
+            Token::Let,
+            Token::Identifier("a".to_string()),
+            Token::Assign,
+            Token::Identifier("_a".to_string()),
+            Token::Plus,
+            Token::Float(1.0),
+            Token::Semicolon,
+            Token::Eof,
+        ];
+
+        expected_tokens.iter().for_each(|expected| {
+            let output = lex.next_token().unwrap();
+            if &output != expected {
+                panic!("Expected:{:?} Observed:{:?}", expected, output);
+            }
+        })
+    }
+
+    #[test]
+    fn test_keywords() {
+        let testcases = vec![
+            ("true", Token::True),
+            ("false", Token::False),
+            ("fn", Token::Function),
+            ("let", Token::Let),
+            ("if", Token::If),
+            ("else", Token::Else),
+            ("for", Token::For),
+            ("while", Token::While),
+            ("return", Token::Return),
+        ];
+        
+        testcases.iter().for_each(
+            |(input,expected)| {
+                let mut lex = Lexer::new(input.to_string()).unwrap();
+                let output = lex.next_token().unwrap();
+                if &output != expected {
+                    panic!("Expected:{:?} Observed:{:?} {}", expected, output, lex.is_eof());
+                }
+            
+            }
+        );
+    }
+
+
 
     #[test]
     fn test_lexer_function() {
