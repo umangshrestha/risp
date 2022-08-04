@@ -51,10 +51,10 @@ impl Parser {
         self._update_token();
 
         let true_block = self.parse_block_statement()?;
-        let false_block = None;
+        let mut false_block = None;
         if self.is_next_token(Token::Else) {
             self._update_token();
-            let false_block = Some(self.parse_block_statement()?);
+            false_block = Some(self.parse_block_statement()?);
         }
         self.should_be(Token::RParen)?;
         let expression = Expression::If {
@@ -86,10 +86,10 @@ impl Parser {
     }
 
     fn parse_prefix_function(&mut self) -> Result<Expression, Exception> {
-        match &self.current_token {
+        match &self.current_token.clone() {
             Token::True | Token::False => self.parse_boolean_literal(),
-            Token::Int(x) => self.parse_integer_literal(*x),
-            Token::Float(x) => self.parse_float_literal(*x),
+            Token::Int(x) => self.parse_integer_literal(x.clone()),
+            Token::Float(x) => self.parse_float_literal(x.clone()),
             Token::String(x) => self.parse_string_literal(x.to_string()),
             Token::Identifier(x) => self.parse_identifier_literal(x.to_string()),
             Token::Not | Token::Minus => self.parse_prefix_expression(),
@@ -99,7 +99,7 @@ impl Parser {
             Token::LCurly => self.parse_hash_literal(),
             Token::Function => self.parse_function_literal(),
 
-            x => Err(Exception::SyntaxError(format!("Unknown Syntax:{}", x))),
+            x => Err(Exception::SyntaxError(format!("Unknown Syntax:\"{}\"", x))),
         }
     }
 
