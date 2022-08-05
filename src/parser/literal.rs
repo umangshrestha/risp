@@ -36,6 +36,7 @@ impl Parser {
     }
 
     pub fn parse_function_literal(&mut self) -> Result<Expression, Exception> {
+        self._update_token();
         let name = self.get_identifier()?;
         let arguments = self.parse_function_paraments()?;
         let body = self.parse_block_statement()?;
@@ -73,7 +74,7 @@ impl Parser {
     }
 
     pub fn get_identifier(&mut self) -> Result<Identifier, Exception> {
-        if let Token::String(x) = self.current_token.clone() {
+        if let Token::Identifier(x) = self.current_token.clone() {
             Ok(Identifier(x))
         } else {
             Err(Exception::SyntaxError(format!(
@@ -127,11 +128,35 @@ mod tests {
                 error: Vec::new(),
             },
             TestCase {
-                input: "true==true".to_string(),
-                program: Vec::new(),
-                error: vec![Exception::SyntaxError(
-                    "Expected:\";\" Observed:\"EOF\"".to_string(),
-                )],
+                input: "fn is_even(a) {
+                    return a % 2==0;
+                }
+                let even = is_even(100);".to_string(),
+                program: vec![
+                    Statement::Expression(
+                        Expression::Function { 
+                            name: Identifier("is_even".to_string()), 
+                            arguments: vec![Identifier("a".to_string())], 
+                            body: vec![
+                                Statement::Return(
+                                    Expression::Infix { 
+                                        op: Token::Mod, 
+                                        lhs: Box::new(Expression::Identifier(Identifier("a".to_string()))), 
+                                        rhs: Box::new(Expression::Infix { 
+                                            op: Token::Eq, 
+                                            lhs: Box::new(Expression::Literal(Literal::Int(2))), 
+                                            rhs: Box::new(Expression::Literal(Literal::Int(0))), 
+                                })
+                            })] 
+                        }), 
+                    Statement::Let(
+                        Identifier("even".to_string()), 
+                        Expression::Call { 
+                            function: Box::new(Expression::Identifier(Identifier("is_even".to_string()))), 
+                            arguments: vec![Expression::Literal(Literal::Int(100))],
+                    })
+                ],
+                error: vec![],
             },
             TestCase {
                 input: "-(1-10)*100+2/(2+3);".to_string(),
@@ -195,7 +220,7 @@ mod tests {
             }
 
             parser.error.iter().enumerate().for_each(|(i, error)| {
-                if testcase.error[i] != *error {
+                if testcase.error[i] != error.exception {
                     panic!(
                         "(Error) Input:{} Expected:{:?} Observed:{:?}",
                         testcase.input, testcase.error[i], error,

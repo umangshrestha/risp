@@ -22,7 +22,7 @@ impl Lexer {
                 data_pos: 0,
                 line_no: 1,
                 line_pos: 0,
-                ch: '\x00',
+                ch: '\0',
             };
             lex._update_ch();
             Ok(lex)            
@@ -38,7 +38,7 @@ impl Lexer {
             data_pos: 0,
             line_no: 1,
             line_pos: 0,
-            ch: '\x00',
+            ch: '\0',
         };
         lex._update_ch();
         Ok(lex)       
@@ -62,17 +62,17 @@ impl Lexer {
         };
     }
 
-    pub fn get_traceback(&self, exception: Exception) -> Traceback {
+    pub fn get_traceback(&mut self, exception: Exception) -> Traceback {
         let start_pos = self.line_pos;
         let line_no = self.line_no;
-        self._skip_next_line();
-        let line = self.data_to_string(start_pos, self.data_pos-1);
+        let end_pos = self._next_line_pos();
+        let line = self.data_to_string(start_pos, end_pos);
         Traceback {
             line_no,
             line, 
             pos: self.data_pos - start_pos,
-            filename: self.filename,
-            message: exception,
+            filename: self.filename.clone(),
+            exception: exception,
         }
     }
 }
@@ -80,10 +80,15 @@ impl Lexer {
 // helper function
 impl Lexer {
     //updates data pos from current line to next line 
-    fn _skip_next_line(&mut self) {
-       while !self.is_eof() || !self._is_next_ch('\n') {
-           self._update_ch();
+    fn _next_line_pos(&mut self) -> usize {
+        if self.data_pos > self.data.len() {
+            return self.data_pos - 1;
+        }
+        let mut pos  = self.data_pos;
+        while pos < self.data.len() && self.data[pos] != '\0' && self.data[pos] != '\n'  {
+          pos+=1;
        } 
+       pos
     }
 
     // reads the next postion in self.line and stores it in self.ch
@@ -96,11 +101,11 @@ impl Lexer {
                 self.line_no += 1;
                 self.line_pos = self.data_pos;
             }
-            self.line_pos += 1;
+            self.data_pos+=1;        
         } else {
-            self.ch = '\x00';
+            self.data_pos=self.data.len()+1;        
+            self.ch = '\0';
         };
-        self.data_pos+=1;        
     }
 
     // reduce next char pointer
@@ -131,7 +136,7 @@ impl Lexer {
         match val.parse::<i64>() {
             Ok(x) => Ok(x),
             Err(x) => Err(Exception::ValueError(format!(
-                "invalid int literal \"{}\"",
+                "Invalid Int Literal \"{}\"",
                 x
             ))),
         }
@@ -142,7 +147,7 @@ impl Lexer {
         match val.parse::<f64>() {
             Ok(x) => Ok(x),
             Err(_) => Err(Exception::ValueError(format!(
-                "invalid float literal \"{}\"",
+                "Invalid Float Literal \"{}\"",
                 val
             ))),
         }
@@ -153,7 +158,7 @@ impl Lexer {
     #[rustfmt::skip]
     fn tokenize_char(&mut self) -> Result<Token, Exception> {
         Ok(match self.ch {
-            '\x00' => Token::Eof,
+            '\0' => Token::Eof,
             ',' => Token::Comma,
             '[' => Token::LBrace,
             ']' => Token::RBrace,
@@ -195,7 +200,7 @@ impl Lexer {
 
     fn tokenize_identifier(&mut self) -> Result<Token, Exception> {
         let start_pos = self.data_pos - 1;
-        while self.is_identifier() {
+        while self.is_identifier() || self.is_number() {
             self._update_ch();
         }
         let val = self.data_to_string(start_pos, self.data_pos - 1);
@@ -264,7 +269,7 @@ impl Lexer {
         self.ch == '#'
     }
     fn is_eof(&self) -> bool {
-        self.ch == '0'
+        self.ch == '\0' 
     }
 }
 
@@ -344,7 +349,6 @@ mod tests {
                 if &output != expected {
                     panic!("Expected:{:?} Observed:{:?}", expected, output);
                 }
-            
             }
         );
     }
@@ -393,7 +397,7 @@ mod tests {
 
         let mut lex = Lexer::new(data.to_string()).unwrap();
 
-        let expected = Exception::ValueError("invalid float literal \"2.0.0\"".to_string());
+        let expected = Exception::ValueError("Invalid Float Literal \"2.0.0\"".to_string());
 
         match lex.next_token() {
             Ok(output) => panic!("Expected:{:?} Observed:{:?}", expected, output),

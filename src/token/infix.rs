@@ -1,6 +1,6 @@
 use super::Token;
 
-const INFIX_OPERARTORS: [Token; 15] = [
+const INFIX_OPERARTORS: [Token; 17]= [
     Token::Plus,
     Token::Minus,
     Token::Divide,
@@ -16,6 +16,8 @@ const INFIX_OPERARTORS: [Token; 15] = [
     Token::Lt,
     Token::Lte,
     Token::LParen,
+    Token::RShift,
+    Token::LShift
 ];
 
 impl Token {

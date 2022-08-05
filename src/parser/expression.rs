@@ -1,5 +1,5 @@
 use super::{Exception, Parser, Precedence, Token};
-use crate::ast::{Expression, Identifier};
+use crate::ast::{Expression};
 
 // expression
 impl Parser {
@@ -26,7 +26,7 @@ impl Parser {
     pub fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, Exception> {
         let mut lhs = self.parse_prefix_function()?;
         while !self.is_next_token(Token::Semicolon)
-            && precedence < self.next_token.get_precedence()
+            && precedence <= self.next_token.get_precedence()
             && self.next_token.is_infix()
         {
             self._update_token();
@@ -120,10 +120,10 @@ impl Parser {
         })
     }
 
-    fn parse_index_expression(&mut self, array: Expression) -> Result<Expression,Exception> {
+    fn parse_index_expression(&mut self, array: Expression) -> Result<Expression, Exception> {
         self._update_token();
         let index = self.parse_expression(Precedence::Lowest)?;
-        let expression = Expression::Index{
+        let expression = Expression::Index {
             array: Box::new(array),
             index: Box::new(index),
         };

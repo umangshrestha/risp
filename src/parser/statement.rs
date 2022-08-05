@@ -12,14 +12,17 @@ impl Parser {
 
     fn parse_expression_statement(&mut self) -> Result<Statement, Exception> {
         let expression = self.parse_expression(Precedence::Lowest)?;
-        self.should_be(Token::Semicolon)?;
+        if self.is_next_token(Token::Semicolon) {
+            self._update_token();
+        }
         Ok(Statement::Expression(expression))
     }
 
     fn parse_let_statement(&mut self) -> Result<Statement, Exception> {
-        let name = self.get_identifier()?;
         self._update_token();
+        let name = self.get_identifier()?;
         self.should_be(Token::Assign)?;
+        self._update_token();
         let statement = Statement::Let(name, self.parse_expression(Precedence::Lowest)?);
         self.should_be(Token::Semicolon)?;
         Ok(statement)
@@ -32,10 +35,10 @@ impl Parser {
     }
 
     pub fn parse_block_statement(&mut self) -> Result<Vec<Statement>, Exception> {
-        self._update_token();
-        self.should_be(Token::LBrace)?;
         let mut block = Vec::new();
-        while !self.is_current_token(Token::RBrace) && !self.is_current_token(Token::Eof) {
+        self.should_be(Token::LCurly)?;
+        self._update_token();
+        while !self.is_current_token(Token::RCurly) && !self.is_current_token(Token::Eof) {
             block.push(self.parse_statement()?);
             self._update_token();
         }

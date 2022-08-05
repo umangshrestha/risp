@@ -1,5 +1,5 @@
 use crate::ast::Statement;
-use crate::{Exception, Lexer, Precedence, Token};
+use crate::{Exception, Lexer, Precedence, Token, Traceback};
 
 mod expression;
 mod literal;
@@ -9,10 +9,9 @@ pub struct Parser {
     lexer: Lexer,
     current_token: Token,
     next_token: Token,
-
     //output
     pub program: Vec<Statement>,
-    pub error: Vec<Exception>,
+    pub error: Vec<Traceback>,
 }
 
 impl Parser {
@@ -33,7 +32,7 @@ impl Parser {
         while !self.is_current_token(Token::Eof) {
             match self.parse_statement() {
                 Ok(x) => self.program.push(x),
-                Err(x) => self.error.push(x),
+                Err(x) => self.error.push(self.lexer.get_traceback(x)),
             }
             self._update_token();
         }
@@ -45,7 +44,7 @@ impl Parser {
                 self.current_token = self.next_token.clone();
                 self.next_token = token;
             }
-            Err(err) => self.error.push(err),
+            Err(err) => self.error.push(self.lexer.get_traceback(err)),
         }
     }
 }
@@ -65,9 +64,10 @@ impl Parser {
             self._update_token();
             Ok(())
         } else {
-            let error_msg = format!("Expected:\"{}\" Observed:\"{}\"", token, self.next_token);
-            Err(Exception::SyntaxError(error_msg))
+            Err(Exception::SyntaxError(format!(
+                "Expected:\"{}\" Observed:\"{}\"",
+                token, self.next_token
+            )))
         }
     }
 }
-

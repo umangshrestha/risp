@@ -6,7 +6,7 @@ pub struct Traceback {
     pub pos: usize,
     pub line: String,
     pub filename: String,
-    pub message: Exception,
+    pub exception: Exception,
 }
 
 impl fmt::Display for Traceback {
@@ -14,7 +14,7 @@ impl fmt::Display for Traceback {
         write!(
             f,
             "File:\"{}\", line:{}, pos:{}\n{}\n{}",
-            self.filename, self.line_no, self.pos, self.line, self.message
+            self.filename, self.line_no, self.pos, self.line, self.exception
         )
     }
 }
