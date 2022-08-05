@@ -107,7 +107,7 @@ mod tests {
     // The syntax used in unittest may not represent the actual langauge system
     // these are just to test the basic functionality of lexer
     use super::{Exception, Lexer, Parser, Token};
-    use crate::ast::{Expression, Literal, Statement};
+    use crate::ast::{Expression, Literal, Statement, Identifier};
 
     struct TestCase {
         input: String,
@@ -162,12 +162,23 @@ mod tests {
                             }) 
                         })],
                         error: Vec::new(),
-            }
-            // TestCase{
-            //     input: "-(1-10)*100+2/(2+3)".to_string(),
-            //     Literal::Int(1)
-            // },
-            // ("1000.0", Literal::Float(1000.0)),
+            },
+            TestCase{
+                input: "a(1);".to_string(),
+                program: vec![
+                    Statement::Expression(
+                        Expression::Call {
+                            function: Box::new(Expression::Identifier(Identifier("a".to_string()))),
+                            arguments: vec![Expression::Literal(Literal::Int(1))],
+                        }
+                )],
+                error: Vec::new(),
+            },
+            TestCase{
+                input: "0.1000;".to_string(),
+                program: vec![Statement::Expression(Expression::Literal(Literal::Float(0.1)))],
+                error: Vec::new(),
+            },
         ];
         testcases.iter().for_each(|testcase| {
             let lex = Lexer::new(testcase.input.to_string()).unwrap();
@@ -211,30 +222,4 @@ mod tests {
             });
         });
     }
-
-    // #[test]
-    // fn test_int_parser() {
-    //     let data = "1";
-    //     let lex = Lexer::new(data.to_string()).unwrap();
-    //     let mut parser = Parser::new(lex);
-    //     let output_statements = parser.parse_program();
-    //     let expected_statement = vec![Statement::Expression(Expression::Literal(Literal::Int(1)))];
-
-    //     if expected_statement.len() != output_statements.len() {
-    //         panic!(
-    //             "Expected:{:?} Observed:{:?}",
-    //             expected_statement.len(),
-    //             output_statements.len()
-    //         );
-    //     }
-
-    //     (1..output_statements.len()).for_each(|i| {
-    //         if expected_statement[i] != output_statements[i] {
-    //             panic!(
-    //                 "Expected:{:?} Observed:{:?}",
-    //                 expected_statement[i], output_statements[i]
-    //             );
-    //         }
-    //     })
-    // }
 }
