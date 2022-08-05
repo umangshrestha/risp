@@ -1,5 +1,5 @@
 mod token;
-pub use token::{Token, Exception, Precedence};
+pub use token::{Token, Exception, Precedence, Traceback};
 
 mod lexer;
 pub use lexer::Lexer;

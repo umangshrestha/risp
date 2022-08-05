@@ -1,4 +1,4 @@
-use crate::{Exception, Token};
+use crate::{Exception, Token, Traceback};
 use std::fs;
 
 pub struct Lexer {
@@ -9,6 +9,7 @@ pub struct Lexer {
     /* information required for debugging */
     filename: String,  // name of the file
     line_no: usize,    // current line number
+    line_pos: usize,   // data pos where current line starts
 }
 
 // exported function
@@ -20,6 +21,7 @@ impl Lexer {
                 data: data.chars().collect(),
                 data_pos: 0,
                 line_no: 1,
+                line_pos: 0,
                 ch: '\x00',
             };
             lex._update_ch();
@@ -35,6 +37,7 @@ impl Lexer {
             data: data.chars().collect(),
             data_pos: 0,
             line_no: 1,
+            line_pos: 0,
             ch: '\x00',
         };
         lex._update_ch();
@@ -58,10 +61,31 @@ impl Lexer {
             data
         };
     }
+
+    pub fn get_traceback(&self, exception: Exception) -> Traceback {
+        let start_pos = self.line_pos;
+        let line_no = self.line_no;
+        self._skip_next_line();
+        let line = self.data_to_string(start_pos, self.data_pos-1);
+        Traceback {
+            line_no,
+            line, 
+            pos: self.data_pos - start_pos,
+            filename: self.filename,
+            message: exception,
+        }
+    }
 }
 
 // helper function
 impl Lexer {
+    //updates data pos from current line to next line 
+    fn _skip_next_line(&mut self) {
+       while !self.is_eof() || !self._is_next_ch('\n') {
+           self._update_ch();
+       } 
+    }
+
     // reads the next postion in self.line and stores it in self.ch
     // stores 0 if data is not found
     fn _update_ch(&mut self) {
@@ -70,7 +94,9 @@ impl Lexer {
             self.ch = self.data[self.data_pos];
             if self.ch == '\n' {
                 self.line_no += 1;
+                self.line_pos = self.data_pos;
             }
+            self.line_pos += 1;
         } else {
             self.ch = '\x00';
         };
@@ -316,7 +342,7 @@ mod tests {
                 let mut lex = Lexer::new(input.to_string()).unwrap();
                 let output = lex.next_token().unwrap();
                 if &output != expected {
-                    panic!("Expected:{:?} Observed:{:?} {}", expected, output, lex.is_eof());
+                    panic!("Expected:{:?} Observed:{:?}", expected, output);
                 }
             
             }

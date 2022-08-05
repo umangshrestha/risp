@@ -2,7 +2,7 @@ mod token;
 pub use token::Token;
 
 mod exception;
-pub use exception::Exception;
+pub use exception::{Exception, Traceback};
 
 mod keywords;
 mod infix;
