@@ -11,8 +11,8 @@ pub struct Parser {
     next_token: Token,
 
     //output
-    program: Vec<Statement>,
-    error: Vec<Exception>,
+    pub program: Vec<Statement>,
+    pub error: Vec<Exception>,
 }
 
 impl Parser {

@@ -106,26 +106,69 @@ impl Parser {
 mod tests {
     // The syntax used in unittest may not represent the actual langauge system
     // these are just to test the basic functionality of lexer
-    use super::{Lexer, Parser, Exception};
+    use super::{Exception, Lexer, Parser, Token};
     use crate::ast::{Expression, Literal, Statement};
 
-    struct TestCase {input: String, program: Vec<Statement>, error: Vec<Exception>}
+    struct TestCase {
+        input: String,
+        program: Vec<Statement>,
+        error: Vec<Exception>,
+    }
     #[test]
     fn test_int_boolean() {
         let testcases = vec![
-            TestCase{
-                input: "false;".to_string(), 
-                program: vec![Statement::Expression(Expression::Literal(Literal::Bool(false)))],
-                error: Vec::new()
-            }, 
-            TestCase{
-                input:"true==true".to_string(), 
-                program: Vec::new(),
-                error: vec![Exception::SyntaxError("Expected:\";\" Observed:\"EOF\"".to_string())]
+            TestCase {
+                input: "(false!=true);".to_string(),
+                program: vec![Statement::Expression(Expression::Infix {
+                    op: Token::Ne,
+                    lhs: Box::new(Expression::Literal(Literal::Bool(false))),
+                    rhs: Box::new(Expression::Literal(Literal::Bool(true))),
+                })],
+                error: Vec::new(),
             },
-            // ("1", Literal::Int(1)),
+            TestCase {
+                input: "true==true".to_string(),
+                program: Vec::new(),
+                error: vec![Exception::SyntaxError(
+                    "Expected:\";\" Observed:\"EOF\"".to_string(),
+                )],
+            },
+            TestCase {
+                input: "-(1-10)*100+2/(2+3);".to_string(),
+                program: vec![
+                    Statement::Expression(
+                        Expression::Infix { // -(1-10)*100 + 100 + 2 /(2+3)
+                            op: Token::Plus, 
+                            lhs: Box::new(Expression::Infix { // -(1-10)*100
+                                op: Token::Times, 
+                                lhs: Box::new(Expression::Prefix { // -(1-10)
+                                    op: Token::Minus, 
+                                    lhs: Box::new(Expression::Infix { // 1-10
+                                        op: Token::Minus, 
+                                        lhs: Box::new(Expression::Literal(Literal::Int(1))), 
+                                        rhs: Box::new(Expression::Literal(Literal::Int(10))), 
+                                    }) 
+                                }), 
+                                rhs: Box::new(Expression::Literal(Literal::Int(100))) // 100 
+                            }), 
+                            rhs: Box::new(Expression::Infix { 
+                                op: Token::Divide, 
+                                lhs: Box::new(Expression::Literal(Literal::Int(2))), // 2/(2+3 )
+                                rhs: Box::new(Expression::Infix { // 2 + 3
+                                    op: Token::Plus, 
+                                    lhs: Box::new(Expression::Literal(Literal::Int(2))), 
+                                    rhs: Box::new(Expression::Literal(Literal::Int(3))), 
+                                }) 
+                            }) 
+                        })],
+                        error: Vec::new(),
+            }
+            // TestCase{
+            //     input: "-(1-10)*100+2/(2+3)".to_string(),
+            //     Literal::Int(1)
+            // },
             // ("1000.0", Literal::Float(1000.0)),
-            ];
+        ];
         testcases.iter().for_each(|testcase| {
             let lex = Lexer::new(testcase.input.to_string()).unwrap();
             let mut parser = Parser::new(lex);
@@ -139,19 +182,15 @@ mod tests {
                     parser.error.len(),
                 );
             }
-            
-            (1..testcase.error.len()).for_each(
-                |i| {
-                if testcase.error[i] != parser.error[i] {
+
+            parser.error.iter().enumerate().for_each(|(i, error)| {
+                if testcase.error[i] != *error {
                     panic!(
                         "(Error) Input:{} Expected:{:?} Observed:{:?}",
-                        testcase.input,
-                        testcase.error[i],
-                        parser.error[i],
+                        testcase.input, testcase.error[i], error,
                     );
-                } 
+                }
             });
-
 
             if testcase.program.len() != parser.program.len() {
                 panic!(
@@ -161,21 +200,15 @@ mod tests {
                     parser.program.len()
                 );
             }
-            
-            (1..testcase.program.len()).for_each(
-                |i| {
-                if testcase.program[i] != parser.program[i] {
+
+            parser.program.iter().enumerate().for_each(|(i, program)| {
+                if testcase.program[i] != *program {
                     panic!(
                         "(Program) Input:{} Expected:{:?} Observed:{:?}",
-                        testcase.input,
-                        testcase.program[i],
-                        parser.program[i],
+                        testcase.input, testcase.program[i], program,
                     );
-                } 
+                }
             });
-            
-            
-
         });
     }
 
