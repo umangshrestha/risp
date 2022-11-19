@@ -1,6 +1,9 @@
-use crate::Error;
-pub use crate::LiteralType;
-pub use crate::TokenType;
+use crate::{TokenType, LiteralType, Error};
+use std::fmt;
+
+mod visitor;
+pub use visitor::Visitor;
+
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -44,19 +47,6 @@ pub enum Expr {
     Variable(String),
 }
 
-pub trait  Visitor {
-    fn visit_assign_expr(&mut self, name: &String, value: &Box<Expr>) -> Result<(), Error>;
-    fn visit_binary_expr(&mut self, left: &Box<Expr>, op: &TokenType, right: &Box<Expr>) -> Result<(), Error>;
-    fn visit_call_expr(&mut self, callee: &Box<Expr>, paren: &TokenType, args: &Vec<Expr>) -> Result<(), Error>;
-    fn visit_get_expr(&mut self, object: &Box<Expr>, name: &String) -> Result<(), Error>;
-    fn visit_grouping_expr(&mut self, expr: &Box<Expr>) -> Result<(), Error>;
-    fn visit_literal_expr(&mut self, value: &LiteralType) -> Result<(), Error>;
-    fn visit_logical_expr(&mut self, left: &Box<Expr>, op: &TokenType, right: &Box<Expr>) -> Result<(), Error>;
-    fn visit_set_expr(&mut self, object: &Box<Expr>, name: &String, value: &Box<Expr>) -> Result<(), Error>;
-    fn visit_super_expr(&mut self, name: &String) -> Result<(), Error>;
-    fn visit_unary_expr(&mut self, op: &TokenType, right: &Box<Expr>) -> Result<(), Error>;
-    fn visit_variable_expr(&mut self, name: &String) -> Result<(), Error>;
-}
 
 
 impl Expr {
@@ -76,3 +66,23 @@ impl Expr {
         }
     }
 }
+
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Expr::Assign { name, value } => write!(f, "(= {} {})", name, value),
+            Expr::Binary { left, op, right } => write!(f, "({} {} {})", op, left, right),
+            Expr::Call { callee, paren, args } => write!(f, "({} {} {:?})", callee, paren, args),
+            Expr::Get { object, name } => write!(f, "({}.{})", object, name),
+            Expr::Grouping(expr) => write!(f, "({})", expr),
+            Expr::Literal(literal) => write!(f, "{:?}", literal),
+            Expr::Logical { left, op, right } => write!(f, "({} {} {})", op, left, right),
+            Expr::Set { object, name, value } => write!(f, "({}.{} = {})", object, name, value),
+            Expr::Super { name } => write!(f, "super.{}", name),
+            Expr::Unary { op, right } => write!(f, "({}{})", op, right),
+            Expr::Variable(name) => write!(f, "{}", name),
+        }
+    }
+}
+

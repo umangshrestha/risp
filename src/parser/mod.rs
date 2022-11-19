@@ -219,10 +219,20 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Result<Expr, Error> {
-        let left = self.equality()?;
-        if self.curr.is(TokenType::Assign) {
+        let left = self.or()?;
+        if let TokenType::Assign
+        | TokenType::PlusEq
+        | TokenType::SubEq
+        | TokenType::ModEq
+        | TokenType::DivEq
+        | TokenType::AndEq
+        | TokenType::OrEq
+        | TokenType::MulEq 
+        | TokenType::XorEq
+        = self.curr.token
+        {
             self.advance();
-            let right = self.assignment()?;
+            let right = self.or()?;
             return match left {
                 Expr::Variable(name) => Ok(Expr::Assign {
                     name,
@@ -237,6 +247,34 @@ impl Parser {
             };
         }
 
+        Ok(left)
+    }
+
+    fn or(&mut self) -> Result<Expr, Error> {
+        let mut left = self.and()?;
+        while self.curr.is(TokenType::Or) {
+            let op = self.advance();
+            let right = self.and()?;
+            left = Expr::Logical {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            };
+        }
+        Ok(left)
+    }
+    
+    fn and(&mut self) -> Result<Expr, Error> {
+        let mut left = self.equality()?;
+        while self.curr.is(TokenType::LAnd) {
+            let op = self.advance();
+            let right = self.equality()?;
+            left = Expr::Logical {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            };
+        }
         Ok(left)
     }
 
@@ -448,20 +486,23 @@ mod tests {
 
     #[test]
     fn test_assignment() {
-        let input= "
+        let input = "
         let a = 1;
         print a ;";
         let mut parser = Parser::new(Lexer::new(input.to_string()));
         let expr = parser.parse_program().unwrap();
         assert_eq!(
             expr,
-            vec![Stmt::Let {
-                name: "a".to_string(),
-                value: Some(Expr::Literal(LiteralType::Number(1.0))),
-                is_const: false,
-            },
-            Stmt::Print { expr: Expr::Variable("a".to_string()) }]
+            vec![
+                Stmt::Let {
+                    name: "a".to_string(),
+                    value: Some(Expr::Literal(LiteralType::Number(1.0))),
+                    is_const: false,
+                },
+                Stmt::Print {
+                    expr: Expr::Variable("a".to_string())
+                }
+            ]
         );
     }
-  
 }

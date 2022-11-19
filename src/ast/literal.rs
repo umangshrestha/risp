@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, Clone)]
+use std::fmt;
+
+#[derive(PartialEq, Clone)]
 pub enum LiteralType {
     String(String),
     Number(f64),
@@ -6,13 +8,13 @@ pub enum LiteralType {
     Nil,
 }
 
-impl LiteralType {
-    pub fn to_string(&self) -> String {
+impl fmt::Debug for LiteralType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LiteralType::String(s) => s.clone(),
-            LiteralType::Number(n) => n.to_string(),
-            LiteralType::Boolean(b) => b.to_string(),
-            LiteralType::Nil => "nil".to_string(),
+            LiteralType::String(s) => write!(f, "{}", s),
+            LiteralType::Number(n) => write!(f, "{}", n),
+            LiteralType::Boolean(b) => write!(f, "{}", b),
+            LiteralType::Nil => write!(f, "nil"),
         }
     }
 }

@@ -70,7 +70,7 @@ impl fmt::Display for TokenType {
         use TokenType::*;
 
         match self {
-            Identifier(x) => write!(f, "${}", x),
+            Identifier(x) => write!(f, "{}", x),
             String(x)     => write!(f, "\"{}\"", x),
             Number(x)        => write!(f, "{}", x),
             True          => write!(f, "True"),
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn test_token_literal() {
         let token = TokenType::Identifier("x".to_string());
-        assert_eq!(token.to_string(), "$x");
+        assert_eq!(token.to_string(), "x");
 
         let token = TokenType::String("hello".to_string());
         assert_eq!(token.to_string(), "\"hello\"");

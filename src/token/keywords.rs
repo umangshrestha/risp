@@ -23,6 +23,7 @@ pub fn lookup_identifier(ident: String) -> TokenType {
         "continue" => TokenType::Continue,
         "super" => TokenType::Super,
         "print" => TokenType::Print,
+        "const" => TokenType::Const,
         _ => TokenType::Identifier(ident),
     }
 }
@@ -55,6 +56,7 @@ mod tests {
             ("continue", TokenType::Continue),
             ("print", TokenType::Print),
             ("super", TokenType::Super),
+            ("const", TokenType::Const),
 
         ];
         is_keyword.iter().for_each(|x| {
