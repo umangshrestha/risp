@@ -1,4 +1,5 @@
 mod token;
+pub use token::Span;
 pub use token::{TokenType, TokenInfo};
 
 mod error;
@@ -8,7 +9,8 @@ mod lexer;
 pub use lexer::Lexer;
 
 mod ast;
-pub use ast::{Expr,ExprInfo, LiteralType, Stmt, StmtInfo, Visitor};
+pub use ast::visitor;
+pub use ast::{Expr, LiteralType, Stmt};
 
 mod parser;
 pub use parser::Parser;
@@ -16,5 +18,5 @@ pub use parser::Parser;
 mod object;
 pub use object::Object;
 
-mod interpretor;
-pub use interpretor::Interpretor;
+// mod interpretor;
+// pub use interpretor::Interpretor;

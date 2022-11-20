@@ -1,18 +1,17 @@
-use crate::{Visitor, Interpretor, ErrorInfo, Expr, Stmt};
+use crate::{visitor, ErrorInfo, Expr, Interpretor, Stmt};
 
-
-impl Visitor::Stmt for Interpretor {
+impl visitor::Stmt for Interpretor {
     fn visit_print_stmt(&mut self, expr: &Expr) -> Result<(), ErrorInfo> {
         let out = self.eval(expr)?;
         println!("{}", out);
         Ok(())
     }
-    
+
     fn visit_expr_stmt(&mut self, expr: &Expr) -> Result<(), ErrorInfo> {
         self.eval(expr)?;
         Ok(())
     }
-   
+
     fn visit_let_stmt(
         &mut self,
         name: &String,

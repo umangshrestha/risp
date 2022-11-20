@@ -1,6 +1,7 @@
 use crate::{LiteralType, Object, Expr, Error, Stmt, TokenType, ErrorInfo};
 mod expr;
 mod stmt;
+mod environment;
 
 pub struct Interpretor {
 

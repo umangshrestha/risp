@@ -1,4 +1,4 @@
-use crate::{Error, Expr, Interpretor, LiteralType, Object, TokenType, Visitor, ErrorInfo};
+use crate::{visitor, Error, ErrorInfo, Expr, Interpretor, LiteralType, Object, TokenType};
 
 impl Visitor::Expr for Interpretor {
     fn visit_literal_expr(&mut self, value: &LiteralType) -> Result<Object, ErrorInfo> {
@@ -78,7 +78,7 @@ impl Visitor::Expr for Interpretor {
                 (Object::Boolean(l), Object::Boolean(r)) => Ok(Object::Boolean(l && r)),
                 _ => Err(Error::Runtime("Operands must be two booleans.".to_string())),
             },
-            
+
             _ => Err(Error::Runtime("Invalid binary operator.".to_string())),
         }
     }
@@ -126,13 +126,11 @@ impl Visitor::Expr for Interpretor {
         }
     }
 
-    
     fn visit_grouping_expr(&mut self, expr: &Box<Expr>) -> Result<Object, ErrorInfo> {
         self.eval(expr)
     }
 
     fn visit_assign_expr(&mut self, name: &String, value: &Box<Expr>) -> Result<Object, ErrorInfo> {
-
     }
     fn visit_call_expr(
         &mut self,
@@ -142,7 +140,6 @@ impl Visitor::Expr for Interpretor {
     ) -> Result<Object, ErrorInfo>;
     fn visit_get_expr(&mut self, object: &Box<Expr>, name: &String) -> Result<Object, ErrorInfo>;
 
-   
     fn visit_set_expr(
         &mut self,
         object: &Box<Expr>,

@@ -1,3 +1,6 @@
+use std::fmt;
+
+
 mod literal;
 pub use literal::LiteralType;
 
@@ -7,21 +10,29 @@ pub use expr::Expr;
 mod stmt;
 pub use stmt::Stmt;
 
-pub mod Visitor {
+
+pub mod visitor {
     pub use crate::ast::{expr::Visitor as Expr, stmt::Visitor as Stmt};
 }
 
 
-pub struct ExprInfo {
-    expr: Expr,
-    line: usize,
-    start: usize,
-    end: usize,
+pub struct Program {
+    pub stmts: Vec<Stmt>,
 }
 
-pub struct StmtInfo {
-    stmt: Stmt,
-    line: usize,
-    start: usize,
-    end: usize,
+impl Program {
+    pub fn new(stmts: Vec<Stmt>) -> Self {
+        Self { stmts }
+    }
+}
+
+impl fmt::Display for Program {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "(")?;
+        for stmt in &self.stmts {
+            write!(f, "{}", stmt)?;
+        }
+        write!(f, ")")?;
+        Ok(())
+    }
 }

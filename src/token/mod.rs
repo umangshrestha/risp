@@ -1,3 +1,6 @@
+mod span;
+pub use span::Span;
+
 mod token_type;
 pub use token_type::TokenType;
 
