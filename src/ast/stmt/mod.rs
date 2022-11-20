@@ -1,4 +1,4 @@
-use crate::{Error, Expr};
+use crate::{ErrorInfo, Expr};
 
 mod visitor;
 pub use visitor::Visitor;
@@ -54,10 +54,10 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), Error> {
+    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), ErrorInfo> {
         match self {
             Stmt::Expr { expr } => visitor.visit_expr_stmt(expr),
-            Stmt::Print { expr } => visitor.visit_print_stmt(),
+            Stmt::Print { expr } => visitor.visit_print_stmt(expr),
             Stmt::Let {
                 name,
                 value,
@@ -113,7 +113,7 @@ impl fmt::Display for Stmt {
                 for stmt in stmt {
                     s.push_str(&format!("{}\n", stmt));
                 }
-                write!(f, "{}", s)
+                write!(f, "{}\n)", s)
             }
             Stmt::If {
                 condition,

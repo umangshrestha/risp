@@ -1,4 +1,4 @@
-use crate::{TokenType, LiteralType, Error};
+use crate::{TokenType, LiteralType, ErrorInfo, Object, TokenInfo};
 use std::fmt;
 
 mod visitor;
@@ -7,7 +7,8 @@ pub use visitor::Visitor;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
-    Assign {
+    Assign {    
+        info: TokenInfo, // <- each node has a TokenInfo field for error reporting purposes   
         name: String,
         value: Box<Expr>,
     },
@@ -50,7 +51,7 @@ pub enum Expr {
 
 
 impl Expr {
-    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), Error> {
+    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<Object, ErrorInfo> {
         match self {
             Expr::Assign { name, value } => visitor.visit_assign_expr(name, value),
             Expr::Binary { left, op, right } => visitor.visit_binary_expr(left, op, right),

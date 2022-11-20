@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::ErrorInfo;
 use crate::Lexer;
 use crate::{Expr, LiteralType, Stmt};
 use crate::{TokenInfo, TokenType};
@@ -18,24 +19,16 @@ impl Parser {
         }
     }
 
-    pub fn parse_program(&mut self) -> Result<Vec<Stmt>, Vec<Error>> {
+    pub fn parse_program(&mut self) -> Result<Vec<Stmt>, ErrorInfo> {
         let mut statements = Vec::new();
-        let mut errors = Vec::new();
         while !self.curr.is(TokenType::Eof) {
-            match self.declaration() {
-                Ok(stmt) => statements.push(stmt),
-                Err(e) => errors.push(e),
-            }
+            statements.push(self.declaration()?);
         }
 
-        if errors.is_empty() {
-            Ok(statements)
-        } else {
-            Err(errors)
-        }
+        Ok(statements)
     }
 
-    fn declaration(&mut self) -> Result<Stmt, Error> {
+    fn declaration(&mut self) -> Result<Stmt, ErrorInfo> {
         match self.curr.token {
             TokenType::Let | TokenType::Const => self.let_declaration(),
             TokenType::Class => self.class_declaration(),
@@ -47,7 +40,7 @@ impl Parser {
         }
     }
 
-    fn let_declaration(&mut self) -> Result<Stmt, Error> {
+    fn let_declaration(&mut self) -> Result<Stmt, ErrorInfo> {
         let is_const = self.curr.is(TokenType::Const);
         self.advance();
         let name = self.get_identifier()?;
@@ -64,13 +57,14 @@ impl Parser {
         })
     }
 
-    fn class_declaration(&mut self) -> Result<Stmt, Error> {
+    fn class_declaration(&mut self) -> Result<Stmt, ErrorInfo> {
         let name = self.get_identifier()?;
         let super_class = if self.curr.is(TokenType::Lt) {
             self.advance();
             let super_class_name = self.get_identifier()?;
             if name == super_class_name {
-                return Err(Error::Parse("Cannot inherit from itself".to_string()));
+                let error = Error::Parse("Cannot inherit from itself".to_string());
+                return Err(ErrorInfo::new(error, self.curr.line, self.curr.start, self.curr.end));
             }
             Some(super_class_name)
         } else {
@@ -89,7 +83,7 @@ impl Parser {
         })
     }
 
-    fn function_declaration(&mut self) -> Result<Stmt, Error> {
+    fn function_declaration(&mut self) -> Result<Stmt, ErrorInfo> {
         let name = self.get_identifier()?;
         self.should_be(TokenType::LParen)?;
         let mut params = Vec::new();
@@ -109,7 +103,7 @@ impl Parser {
         })
     }
 
-    fn statement(&mut self) -> Result<Stmt, Error> {
+    fn statement(&mut self) -> Result<Stmt, ErrorInfo> {
         match self.curr.token {
             TokenType::Print => self.print_statement(),
             TokenType::If => self.if_statement(),
@@ -121,20 +115,20 @@ impl Parser {
         }
     }
 
-    fn expression_statement(&mut self) -> Result<Stmt, Error> {
+    fn expression_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         let expr = self.expression()?;
         self.should_be(TokenType::Semicolon)?;
         Ok(Stmt::Expr { expr })
     }
 
-    fn print_statement(&mut self) -> Result<Stmt, Error> {
+    fn print_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.advance();
         let expr = self.expression()?;
         self.should_be(TokenType::Semicolon)?;
         Ok(Stmt::Print { expr })
     }
 
-    fn return_statement(&mut self) -> Result<Stmt, Error> {
+    fn return_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.advance();
         let mut value = None;
         if !self.curr.is(TokenType::Semicolon) {
@@ -144,7 +138,7 @@ impl Parser {
         Ok(Stmt::Return { value })
     }
 
-    fn for_statement(&mut self) -> Result<Stmt, Error> {
+    fn for_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.advance();
         self.should_be(TokenType::LParen)?;
         let initializer = match self.curr.token {
@@ -175,7 +169,7 @@ impl Parser {
         })
     }
 
-    fn if_statement(&mut self) -> Result<Stmt, Error> {
+    fn if_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.advance();
         self.should_be(TokenType::LParen)?;
         let condition = self.expression()?;
@@ -193,7 +187,7 @@ impl Parser {
         })
     }
 
-    fn while_statement(&mut self) -> Result<Stmt, Error> {
+    fn while_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.advance();
         self.should_be(TokenType::LParen)?;
         let condition = self.expression()?;
@@ -202,7 +196,7 @@ impl Parser {
         Ok(Stmt::While { condition, body })
     }
 
-    fn block_statement(&mut self) -> Result<Stmt, Error> {
+    fn block_statement(&mut self) -> Result<Stmt, ErrorInfo> {
         self.should_be(TokenType::LBrace)?;
         let mut stmt = Vec::new();
         while !self.curr.is(TokenType::RBrace) && !self.curr.is(TokenType::Eof) {
@@ -214,11 +208,11 @@ impl Parser {
 }
 
 impl Parser {
-    fn expression(&mut self) -> Result<Expr, Error> {
+    fn expression(&mut self) -> Result<Expr, ErrorInfo> {
         self.assignment()
     }
 
-    fn assignment(&mut self) -> Result<Expr, Error> {
+    fn assignment(&mut self) -> Result<Expr, ErrorInfo> {
         let left = self.or()?;
         if let TokenType::Assign
         | TokenType::PlusEq
@@ -227,9 +221,8 @@ impl Parser {
         | TokenType::DivEq
         | TokenType::AndEq
         | TokenType::OrEq
-        | TokenType::MulEq 
-        | TokenType::XorEq
-        = self.curr.token
+        | TokenType::MulEq
+        | TokenType::XorEq = self.curr.token
         {
             self.advance();
             let right = self.or()?;
@@ -243,14 +236,22 @@ impl Parser {
                     name,
                     value: Box::new(right),
                 }),
-                _ => return Err(Error::Parse("Invalid assignment target".to_string())),
+                _ => {
+                    let error = Error::Parse("Invalid assignment target".to_string());
+                    return Err(ErrorInfo::new(
+                        error,
+                        self.curr.line,
+                        self.curr.start,
+                        self.curr.end,
+                    ));
+                }
             };
         }
 
         Ok(left)
     }
 
-    fn or(&mut self) -> Result<Expr, Error> {
+    fn or(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.and()?;
         while self.curr.is(TokenType::Or) {
             let op = self.advance();
@@ -263,8 +264,8 @@ impl Parser {
         }
         Ok(left)
     }
-    
-    fn and(&mut self) -> Result<Expr, Error> {
+
+    fn and(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.equality()?;
         while self.curr.is(TokenType::LAnd) {
             let op = self.advance();
@@ -278,12 +279,12 @@ impl Parser {
         Ok(left)
     }
 
-    fn equality(&mut self) -> Result<Expr, Error> {
+    fn equality(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.comparison()?;
         while let TokenType::Eq | TokenType::Ne = self.curr.token {
             let op = self.advance();
             let right = self.comparison()?;
-            left = Expr::Binary {
+            left = Expr::Logical {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
@@ -292,13 +293,13 @@ impl Parser {
         Ok(left)
     }
 
-    fn comparison(&mut self) -> Result<Expr, Error> {
+    fn comparison(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.term()?;
         while let TokenType::Gt | TokenType::Gte | TokenType::Lt | TokenType::Lte = self.curr.token
         {
             let op = self.advance();
             let right = self.term()?;
-            left = Expr::Binary {
+            left = Expr::Logical {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
@@ -307,9 +308,14 @@ impl Parser {
         Ok(left)
     }
 
-    fn term(&mut self) -> Result<Expr, Error> {
+    fn term(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.factor()?;
-        while let TokenType::Plus | TokenType::Minus = self.curr.token {
+        while let TokenType::Plus
+        | TokenType::Minus
+        | TokenType::Or
+        | TokenType::And
+        | TokenType::Xor = self.curr.token
+        {
             let op = self.advance();
             let right = self.factor()?;
             left = Expr::Binary {
@@ -321,7 +327,7 @@ impl Parser {
         Ok(left)
     }
 
-    fn factor(&mut self) -> Result<Expr, Error> {
+    fn factor(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.unary()?;
         while let TokenType::Times | TokenType::Divide = self.curr.token {
             let op = self.advance();
@@ -335,8 +341,8 @@ impl Parser {
         Ok(left)
     }
 
-    fn unary(&mut self) -> Result<Expr, Error> {
-        if let TokenType::Minus | TokenType::Not = self.curr.token {
+    fn unary(&mut self) -> Result<Expr, ErrorInfo> {
+        if let TokenType::Minus | TokenType::Not | TokenType::Plus = self.curr.token {
             let op = self.advance();
             let right = self.unary()?;
             Ok(Expr::Unary {
@@ -348,7 +354,7 @@ impl Parser {
         }
     }
 
-    fn call(&mut self) -> Result<Expr, Error> {
+    fn call(&mut self) -> Result<Expr, ErrorInfo> {
         let mut expr = self.primary()?;
         loop {
             match self.curr.token {
@@ -379,7 +385,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn primary(&mut self) -> Result<Expr, Error> {
+    fn primary(&mut self) -> Result<Expr, ErrorInfo> {
         match self.curr.token.clone() {
             TokenType::True => {
                 self.advance();
@@ -419,33 +425,51 @@ impl Parser {
             }
             _ => {
                 self.advance();
-                Err(Error::Parse("Expect expression.".to_string()))
+                let error = Error::Parse("Expect expression.".to_string());
+                Err(ErrorInfo::new(
+                    error,
+                    self.curr.line,
+                    self.curr.start,
+                    self.curr.end,
+                ))
             }
         }
     }
 }
 
 impl Parser {
-    fn should_be(&mut self, token_type: TokenType) -> Result<TokenType, Error> {
+    fn should_be(&mut self, token_type: TokenType) -> Result<TokenType, ErrorInfo> {
         if self.curr.is(token_type.clone()) {
             Ok(self.advance())
         } else {
-            Err(Error::Syntax(format!(
+            let error = Error::Syntax(format!(
                 "Expected: \"{}\" Found: \"{}\"",
                 token_type, self.curr.token
-            )))
+            ));
+            Err(ErrorInfo::new(
+                error,
+                self.curr.line,
+                self.curr.start,
+                self.curr.end,
+            ))
         }
     }
 
-    fn get_identifier(&mut self) -> Result<String, Error> {
+    fn get_identifier(&mut self) -> Result<String, ErrorInfo> {
         if let TokenType::Identifier(x) = self.curr.token.clone() {
             self.advance();
             Ok(x)
         } else {
-            Err(Error::Syntax(format!(
+            let error = Error::Syntax(format!(
                 "Expected: \"Identifier\" Found: \"{}\"",
                 self.curr.token
-            )))
+            ));
+            Err(ErrorInfo::new(
+                error,
+                self.curr.line,
+                self.curr.start,
+                self.curr.end,
+            ))
         }
     }
 

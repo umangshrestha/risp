@@ -11,9 +11,9 @@ pub enum LiteralType {
 impl fmt::Debug for LiteralType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LiteralType::String(s) => write!(f, "{}", s),
-            LiteralType::Number(n) => write!(f, "{}", n),
-            LiteralType::Boolean(b) => write!(f, "{}", b),
+            LiteralType::String(s) => write!(f, "{s}"),
+            LiteralType::Number(n) => write!(f, "{n}"),
+            LiteralType::Boolean(b) => write!(f, "{b}"),
             LiteralType::Nil => write!(f, "nil"),
         }
     }

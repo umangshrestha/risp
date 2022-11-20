@@ -5,6 +5,8 @@ pub enum Error {
     Syntax(String),
     Value(String),
     Parse(String),
+    Runtime(String),
+    ZeroDivision,
 }
 
 impl fmt::Display for Error {
@@ -13,6 +15,9 @@ impl fmt::Display for Error {
             Error::Syntax(x) => write!(f, "SyntaxError: {x}"),
             Error::Value(x) => write!(f, "ValueError: {x}"),
             Error::Parse(x) => write!(f, "ParseError: {x}"),
+            Error::Runtime(x) => write!(f, "ParseError: {x}"),
+            Error::ZeroDivision => write!(f, "ZeroDivisionError: division by zero"),
+
         }
     }
 }
