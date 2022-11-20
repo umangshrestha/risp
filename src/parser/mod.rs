@@ -413,6 +413,11 @@ impl Parser {
                 let value = LiteralType::Boolean(false);
                 Ok(Expr::Literal { value, span })
             }
+            TokenType::Nil => {
+                self.advance();
+                let value = LiteralType::Nil;
+                Ok(Expr::Literal { value, span })
+            }
             TokenType::Number(x) => {
                 self.advance();
                 let value = LiteralType::Number(x);

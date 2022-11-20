@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{LiteralType, Object, Expr, Error, Stmt, TokenType, ErrorInfo, Environment};
+use crate::{LiteralType, Object, Expr, Error, Stmt, TokenType, ErrorInfo, Environment, ast::Program};
 mod expr;
 mod stmt;
 
@@ -11,9 +11,18 @@ pub struct Interpretor {
 }
 
 impl Interpretor {
+    pub fn new() -> Self {
+        let globals = Rc::new(RefCell::new(Environment::new()));
+        let environment = globals.clone();
+        Self {
+            globals,
+            environment,
+            locals: std::collections::HashMap::new(),
+        }
+    }
 
-    pub fn interpret(&mut self, stmts: Vec<Stmt>) {
-        for stmt in stmts {
+    pub fn interpret(&mut self, program: Program) {
+        for stmt in program.stmts {
             let res = self.exec(&stmt);
             if res.is_err() {
                 res.err().unwrap().report();

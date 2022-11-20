@@ -1,6 +1,5 @@
 use std::fmt;
 
-
 mod literal;
 pub use literal::LiteralType;
 
@@ -10,11 +9,9 @@ pub use expr::Expr;
 mod stmt;
 pub use stmt::Stmt;
 
-
 pub mod visitor {
     pub use crate::ast::{expr::Visitor as Expr, stmt::Visitor as Stmt};
 }
-
 
 pub struct Program {
     pub stmts: Vec<Stmt>,

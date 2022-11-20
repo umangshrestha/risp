@@ -93,3 +93,23 @@ impl visitor::Expr for Interpretor {
         todo!();
     }
 }
+
+
+
+#[cfg(test)]
+mod test {
+    use crate::interpretor::Interpretor;
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::visitor::Expr;
+
+    #[test]
+    fn test_literal() {
+        let input = "nil; true; false; 123; \"Hello, world!\";";
+        let lexer = Lexer::new(input.to_string());
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program().unwrap();
+        let mut interpretor = Interpretor::new();
+        interpretor.interpret(program);
+    }
+}

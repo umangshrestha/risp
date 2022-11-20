@@ -8,6 +8,13 @@ pub struct Environment {
 }
 
 impl Environment {
+    pub fn new() -> Self {
+        Self {
+            values: HashMap::new(),
+            enclosing: None,
+        }
+    }
+    
     pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<(), Error> {
         if is_const && value.is_nil() {
             return Err(Error::Syntax(
