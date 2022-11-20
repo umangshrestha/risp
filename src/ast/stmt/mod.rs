@@ -137,9 +137,9 @@ impl fmt::Display for Stmt {
                 let mut s = String::new();
                 s.push_str("(");
                 for stmt in stmt {
-                    s.push_str(&format!("{}\n", stmt));
+                    s.push_str(&format!("{}", stmt));
                 }
-                write!(f, "{}\n)", s)
+                write!(f, "{})", s)
             }
             Stmt::If {
                 condition,
@@ -147,9 +147,9 @@ impl fmt::Display for Stmt {
                 falsy,
                 span: _,
             } => {
-                write!(f,"(if ({condition}) {truthy}")?;
+                write!(f, "(if {condition} then {truthy}")?;
                 if let Some(else_block) = falsy {
-                    write!(f," else {else_block})")?;
+                    write!(f, " else {else_block})")?;
                 }
                 Ok(())
             }

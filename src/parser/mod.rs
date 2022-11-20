@@ -117,7 +117,7 @@ impl Parser {
             TokenType::While => self.while_statement(),
             TokenType::For => self.for_statement(),
             TokenType::Return => self.return_statement(),
-            TokenType::LBrace => self.block_statement(),
+            TokenType::LCurly => self.block_statement(),
             _ => self.expression_statement(),
         }
     }
@@ -211,12 +211,12 @@ impl Parser {
     }
 
     fn block_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let span = self.should_be(TokenType::LBrace)?;
+        let span = self.should_be(TokenType::LCurly)?;
         let mut stmt = Vec::new();
-        while !self.curr.is(TokenType::RBrace) && !self.curr.is(TokenType::Eof) {
+        while !self.curr.is(TokenType::RCurly) && !self.curr.is(TokenType::Eof) {
             stmt.push(self.declaration()?);
         }
-        self.should_be(TokenType::RBrace)?;
+        self.should_be(TokenType::RCurly)?;
         Ok(Stmt::Block { stmt, span })
     }
 }
@@ -506,5 +506,21 @@ mod tests {
         let mut parser = Parser::new(Lexer::new(input.to_string()));
         let expr = parser.parse_program().unwrap();
         assert_eq!(expr.to_string(), "((let a 1)(print a))");
+    }
+
+    #[test]
+    fn test_if() {
+        let input = "
+        if (a == 1) {
+            print a;
+        } else {
+            print b;
+        }";
+        let mut parser = Parser::new(Lexer::new(input.to_string()));
+        let expr = parser.parse_program().unwrap();
+        assert_eq!(
+            expr.to_string(),
+            "((if (== a 1) then ((print a)) else ((print b))))"
+        );
     }
 }

@@ -1,6 +1,6 @@
 mod token;
 pub use token::Span;
-pub use token::{TokenType, TokenInfo};
+pub use token::{TokenInfo, TokenType};
 
 mod error;
 pub use error::{Error, ErrorInfo};
