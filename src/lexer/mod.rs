@@ -142,9 +142,10 @@ impl Lexer {
                     }
                     self.next_char();
                 }
-                let data = self.data[self.start..self.curr]
+                let data = self.data[self.start+1..self.curr]
                     .into_iter()
                     .collect::<String>();
+                self.next_char();
                 Ok(TokenType::String(data))
             }
             'a'..='z' | 'A'..='Z' | '_' => {

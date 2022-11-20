@@ -123,17 +123,16 @@ impl Parser {
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let span = self.curr.span.clone();
         let expr = self.expression()?;
         self.should_be(TokenType::Semicolon)?;
-        Ok(Stmt::Expr { expr, span })
+        Ok(Stmt::Expr { expr })
     }
 
     fn print_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let (_, span) = self.advance();
+        self.advance();
         let expr = self.expression()?;
         self.should_be(TokenType::Semicolon)?;
-        Ok(Stmt::Print { expr, span })
+        Ok(Stmt::Print { expr })
     }
 
     fn return_statement(&mut self) -> Result<Stmt, ErrorInfo> {
@@ -198,16 +197,12 @@ impl Parser {
     }
 
     fn while_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let (_, span) = self.advance();
+        self.advance();
         self.should_be(TokenType::LParen)?;
         let condition = self.expression()?;
         self.should_be(TokenType::RParen)?;
         let body = Box::new(self.statement()?);
-        Ok(Stmt::While {
-            condition,
-            body,
-            span,
-        })
+        Ok(Stmt::While { condition, body })
     }
 
     fn block_statement(&mut self) -> Result<Stmt, ErrorInfo> {
@@ -448,7 +443,7 @@ impl Parser {
                 Ok(Expr::Variable { name, span })
             }
             _ => {
-                let error = Error::Parse("Expect expression.".to_string());
+                let error = Error::Parse(format!("Expect expression found \"{}\"", tok.token));
                 Err(ErrorInfo::new_with_span(error, span))
             }
         }
@@ -491,6 +486,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_hello_world() {
+        let input = "print \"Hello, World!\";";
+        let mut parser = Parser::new(Lexer::new(input.into()));
+        let expr = parser.parse_program().unwrap();
+        assert_eq!(expr.to_string(), "((print \"Hello, World!\"))");
+    }
+    #[test]
     fn test_negative_unary() {
         let input = "-(1 / (2 * 32));";
         let mut parser = Parser::new(Lexer::new(input.into()));
@@ -502,7 +504,7 @@ mod tests {
     fn test_assignment() {
         let input = "
         let a = 1;
-        print a ;";
+        print a; ";
         let mut parser = Parser::new(Lexer::new(input.to_string()));
         let expr = parser.parse_program().unwrap();
         assert_eq!(expr.to_string(), "((let a 1)(print a))");

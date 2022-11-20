@@ -6,6 +6,7 @@ pub enum Error {
     Value(String),
     Parse(String),
     Runtime(String),
+    Name(String),
     ZeroDivision,
 }
 
@@ -17,6 +18,7 @@ impl fmt::Display for Error {
             Error::Parse(x) => write!(f, "ParseError: {x}"),
             Error::Runtime(x) => write!(f, "ParseError: {x}"),
             Error::ZeroDivision => write!(f, "ZeroDivisionError: division by zero"),
+            Error::Name(x) => write!(f, "NameError: undefined variable \"{x}\""),
 
         }
     }

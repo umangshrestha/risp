@@ -18,5 +18,8 @@ pub use parser::Parser;
 mod object;
 pub use object::Object;
 
-// mod interpretor;
-// pub use interpretor::Interpretor;
+mod environment;
+pub use environment::Environment;
+
+mod interpretor;
+pub use interpretor::Interpretor;

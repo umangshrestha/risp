@@ -1,10 +1,13 @@
-use crate::{LiteralType, Object, Expr, Error, Stmt, TokenType, ErrorInfo};
+use std::{cell::RefCell, rc::Rc};
+
+use crate::{LiteralType, Object, Expr, Error, Stmt, TokenType, ErrorInfo, Environment};
 mod expr;
 mod stmt;
-mod environment;
 
 pub struct Interpretor {
-
+    pub globals: Rc<RefCell<Environment>>,
+    environment: Rc<RefCell<Environment>>,
+    pub locals: std::collections::HashMap<Expr, usize>,
 }
 
 impl Interpretor {

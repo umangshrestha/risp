@@ -1,21 +1,12 @@
 use std::fmt;
+pub mod utils;
 
+#[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Boolean(bool),
     Number(f64),
     String(String),
     Nil,
-}
-
-impl Object {
-    pub fn to_boolean(&self) -> bool {
-        match self {
-            Object::Nil => false,
-            Object::Boolean(b) => *b,
-            Object::Number(n) => *n != 0.0,
-            Object::String(s) => !s.is_empty(),
-        }
-    }
 }
 
 impl fmt::Display for Object {

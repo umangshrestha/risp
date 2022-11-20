@@ -1,4 +1,4 @@
-use crate::{visitor, ErrorInfo, Expr, Interpretor, Stmt};
+use crate::{visitor, ErrorInfo, Expr, Interpretor, Object, Span, Stmt};
 
 impl visitor::Stmt for Interpretor {
     fn visit_print_stmt(&mut self, expr: &Expr) -> Result<(), ErrorInfo> {
@@ -17,35 +17,83 @@ impl visitor::Stmt for Interpretor {
         name: &String,
         value: &Option<Expr>,
         is_const: bool,
-    ) -> Result<(), ErrorInfo>;
-    fn visit_block_stmt(&mut self, stmt: &Vec<Stmt>) -> Result<(), ErrorInfo>;
+        span: &Span,
+    ) -> Result<(), ErrorInfo> {
+        let value = value
+            .as_ref()
+            .map(|v| self.eval(v))
+            .unwrap_or(Ok(Object::Nil))?;
+
+        self.environment
+            .borrow_mut()
+            .define(name.to_owned(), value, is_const)
+            .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
+    }
+
+    fn visit_while_stmt(&mut self, condition: &Expr, body: &Box<Stmt>) -> Result<(), ErrorInfo> {
+        let mut flag = self.eval(condition)?;
+        while flag.to_boolean() {
+            self.exec(body)?;
+            flag = self.eval(condition)?;
+        }
+        Ok(())
+    }
+
+    fn visit_return_stmt(&mut self, value: &Option<Expr>, span: &Span) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+    fn visit_block_stmt(&mut self, stmt: &Vec<Stmt>, span: &Span) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
+
     fn visit_if_stmt(
         &mut self,
         condition: &Expr,
-        truthy: &Stmt,
+        truthy: &Box<Stmt>,
         falsy: &Option<Box<Stmt>>,
-    ) -> Result<(), ErrorInfo>;
-    fn visit_while_stmt(&mut self, condition: &Expr, body: &Stmt) -> Result<(), ErrorInfo>;
+        span: &Span,
+    ) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
     fn visit_function_stmt(
         &mut self,
         name: &String,
         params: &Vec<String>,
-        body: &Stmt,
-    ) -> Result<(), ErrorInfo>;
-    fn visit_return_stmt(&mut self, value: &Option<Expr>) -> Result<(), ErrorInfo>;
+        body: &Box<Stmt>,
+        span: &Span,
+    ) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
     fn visit_class_stmt(
         &mut self,
         name: &String,
         super_class: &Option<String>,
         methods: &Vec<Stmt>,
-    ) -> Result<(), ErrorInfo>;
+        span: &Span,
+    ) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
     fn visit_for_stmt(
         &mut self,
         initializer: &Option<Box<Stmt>>,
-        condition: &Option<Box<Expr>>,
-        increment: &Option<Box<Expr>>,
-        body: &Stmt,
-    ) -> Result<(), ErrorInfo>;
-    fn visit_break_stmt(&mut self) -> Result<(), ErrorInfo>;
-    fn visit_continue_stmt(&mut self) -> Result<(), ErrorInfo>;
+        condition: &Option<Expr>,
+        increment: &Option<Expr>,
+        body: &Box<Stmt>,
+        span: &Span,
+    ) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
+
+    fn visit_break_stmt(&mut self, span: &Span) -> Result<(), ErrorInfo> {
+        todo!();
+    }
+
+    fn visit_continue_stmt(&mut self, span: &Span) -> Result<(), ErrorInfo> {
+        todo!();
+    }
 }

@@ -9,11 +9,9 @@ use std::fmt;
 pub enum Stmt {
     Expr {
         expr: Expr,
-        span: Span,
     },
     Print {
         expr: Expr,
-        span: Span,
     },
     Let {
         name: String,
@@ -34,7 +32,6 @@ pub enum Stmt {
     While {
         condition: Expr,
         body: Box<Stmt>,
-        span: Span,
     },
     Function {
         name: String,
@@ -70,14 +67,14 @@ pub enum Stmt {
 impl Stmt {
     pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), ErrorInfo> {
         match self {
-            Stmt::Expr { expr, span } => visitor.visit_expr_stmt(expr, span),
-            Stmt::Print { expr, span } => visitor.visit_print_stmt(expr, span),
+            Stmt::Expr { expr } => visitor.visit_expr_stmt(expr),
+            Stmt::Print { expr } => visitor.visit_print_stmt(expr),
             Stmt::Let {
                 name,
                 value,
                 is_const,
                 span,
-            } => visitor.visit_let_stmt(name, value, is_const, span),
+            } => visitor.visit_let_stmt(name, value, *is_const, span),
             Stmt::Block { stmt, span } => visitor.visit_block_stmt(stmt, span),
             Stmt::If {
                 condition,
@@ -85,11 +82,7 @@ impl Stmt {
                 falsy,
                 span,
             } => visitor.visit_if_stmt(condition, truthy, falsy, span),
-            Stmt::While {
-                condition,
-                body,
-                span,
-            } => visitor.visit_while_stmt(condition, body, span),
+            Stmt::While { condition, body } => visitor.visit_while_stmt(condition, body),
             Stmt::Function {
                 name,
                 params,
@@ -119,8 +112,8 @@ impl Stmt {
 impl fmt::Display for Stmt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Stmt::Expr { expr, span: _ } => write!(f, "{}", expr),
-            Stmt::Print { expr, span: _ } => write!(f, "(print {})", expr),
+            Stmt::Expr { expr } => write!(f, "{}", expr),
+            Stmt::Print { expr } => write!(f, "(print {})", expr),
             Stmt::Let {
                 name,
                 value,
@@ -156,7 +149,6 @@ impl fmt::Display for Stmt {
             Stmt::While {
                 condition,
                 body,
-                span: _,
             } => write!(f, "(while ({}) {})", condition, body),
             Stmt::Function {
                 name,
