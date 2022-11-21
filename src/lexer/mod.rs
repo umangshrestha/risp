@@ -54,21 +54,21 @@ impl Lexer {
             }
             '-' => {
                 if self.is_next_char('=') {
-                    Ok(TokenType::SubEq)
+                    Ok(TokenType::MinusEq)
                 } else {
                     Ok(TokenType::Minus)
                 }
             }
             '*' => {
                 if self.is_next_char('=') {
-                    Ok(TokenType::MulEq)
+                    Ok(TokenType::TimesEq)
                 } else {
                     Ok(TokenType::Times)
                 }
             }
             '/' => {
                 if self.is_next_char('=') {
-                    Ok(TokenType::DivEq)
+                    Ok(TokenType::DivideEq)
                 } else {
                     Ok(TokenType::Divide)
                 }
@@ -105,7 +105,7 @@ impl Lexer {
                 if self.is_next_char('=') {
                     Ok(TokenType::AndEq)
                 } else if self.is_next_char('&') {
-                    Ok(TokenType::LAnd)
+                    Ok(TokenType::LogicalAnd)
                 } else {
                     Ok(TokenType::And)
                 }
@@ -114,7 +114,7 @@ impl Lexer {
                 if self.is_next_char('=') {
                     Ok(TokenType::OrEq)
                 } else if self.is_next_char('|') {
-                    Ok(TokenType::LOr)
+                    Ok(TokenType::LogicalOr)
                 } else {
                     Ok(TokenType::Or)
                 }
@@ -285,12 +285,12 @@ mod tests {
             TokenType::Ne,
             TokenType::Lte,
             TokenType::Gte,
-            TokenType::LAnd,
-            TokenType::LOr,
+            TokenType::LogicalAnd,
+            TokenType::LogicalOr,
             TokenType::PlusEq,
-            TokenType::SubEq,
-            TokenType::MulEq,
-            TokenType::DivEq,
+            TokenType::MinusEq,
+            TokenType::TimesEq,
+            TokenType::DivideEq,
             TokenType::ModEq,
             TokenType::XorEq,
             TokenType::LShift,

@@ -231,16 +231,21 @@ impl Parser {
         let left = self.or()?;
         if let TokenType::Assign
         | TokenType::PlusEq
-        | TokenType::SubEq
+        | TokenType::TimesEq
         | TokenType::ModEq
-        | TokenType::DivEq
+        | TokenType::DivideEq
         | TokenType::AndEq
         | TokenType::OrEq
-        | TokenType::MulEq
+        | TokenType::TimesEq
         | TokenType::XorEq = self.curr.token
         {
-            let val = self.advance();
-            let right = self.or()?;
+            let mut op = self.advance();
+            let mut right = self.or()?;
+            if let Some(token) = desugar_assign(op.token) {
+                op.token = token;
+                right = Expr::Binary { left: Box::new(left.clone()), op: op.clone(), right: Box::new(right) };
+            }
+             
             return match left {
                 Expr::Variable { name, span } => Ok(Expr::Assign {
                     name,
@@ -255,7 +260,7 @@ impl Parser {
                 }),
                 _ => {
                     let error = Error::Parse("Invalid assignment target".to_string());
-                    return Err(ErrorInfo::new_with_span(error, val.span));
+                    return Err(ErrorInfo::new_with_span(error, op.span));
                 }
             };
         }
@@ -279,7 +284,7 @@ impl Parser {
 
     fn and(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.equality()?;
-        while self.curr.is(TokenType::LAnd) {
+        while self.curr.is(TokenType::LogicalAnd) {
             let op = self.advance();
             let right = self.equality()?;
             left = Expr::Binary {
@@ -484,6 +489,23 @@ impl Parser {
         self.prev.clone()
     }
 }
+
+
+
+pub fn desugar_assign(tok: TokenType) -> Option<TokenType> {
+    match tok {
+        TokenType::PlusEq => Some(TokenType::Plus),
+        TokenType::MinusEq => Some(TokenType::Minus),
+        TokenType::ModEq => Some(TokenType::Mod),
+        TokenType::DivideEq => Some(TokenType::Divide),
+        TokenType::AndEq => Some(TokenType::And),
+        TokenType::OrEq => Some(TokenType::Or),
+        TokenType::TimesEq => Some(TokenType::Times),
+        TokenType::XorEq => Some(TokenType::Xor),
+        _ => None,
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
