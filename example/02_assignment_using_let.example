@@ -1,0 +1,23 @@
+# There are 2 types of declaration:
+# 1. Using "let" keyword
+# 2. Using "const" keyword
+# Const will be discussed in next example.
+# We will start will let declaration.
+
+let a = 1;
+print a;         # [output]:  1
+
+
+# We can overwrite the variable as:
+a = "Yaay!!!";
+print a;         # [output]: Yaay!!!
+
+
+# If you declare a variable with no default value then it will hold nil;
+let b;
+print b;         # [output]: Yaay!!!
+
+
+# We can always overwrite variable declared with let;
+let a = "NEW VARIABLE";
+print a;          # [output]: NEW VARIABLE

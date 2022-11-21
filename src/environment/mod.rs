@@ -15,7 +15,7 @@ impl Environment {
         }
     }
     
-    pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<(), Error> {
+    pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<Object, Error> {
         if is_const && value.is_nil() {
             return Err(Error::Syntax(
                 "cannot declare a constant without a value".to_string(),
@@ -28,8 +28,8 @@ impl Environment {
                 ));
             }
         }
-        self.values.insert(name, (value, is_const));
-        Ok(())
+        self.values.insert(name, (value.clone(), is_const));
+        Ok(value)
     }
 
     pub fn get(&mut self, name: &String) -> Result<Object, Error> {

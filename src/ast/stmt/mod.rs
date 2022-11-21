@@ -1,4 +1,4 @@
-use crate::{ErrorInfo, Expr, Span};
+use crate::{ErrorInfo, Expr, Span, Object};
 
 mod visitor;
 pub use visitor::Visitor;
@@ -65,7 +65,7 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), ErrorInfo> {
+    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<Object, ErrorInfo> {
         match self {
             Stmt::Expr { expr } => visitor.visit_expr_stmt(expr),
             Stmt::Print { expr } => visitor.visit_print_stmt(expr),
