@@ -1,4 +1,4 @@
-use crate::{Error, Expr, LiteralType, Object, TokenType, ErrorInfo};
+use crate::{Error, Object, TokenType};
 
 impl Object {
     pub fn is_nil(&self) -> bool {
@@ -7,7 +7,6 @@ impl Object {
             _ => false,
         }
     }
-
 
     pub fn to_boolean(&self) -> bool {
         match self {
@@ -81,12 +80,6 @@ impl Object {
                 (Object::Boolean(l), Object::Boolean(r)) => Ok(Object::Boolean(l && r)),
                 _ => Err(Error::Runtime("Operands must be two booleans.".to_string())),
             },
-            _ => Err(Error::Runtime("Invalid binary operator.".to_string())),
-        }
-    }
-
-    pub fn logical(left: Object, op: &TokenType, right: Object) -> Result<Object, Error> {
-        match op {
             TokenType::Gt => match (left, right) {
                 (Object::Number(l), Object::Number(r)) => Ok(Object::Boolean(l > r)),
                 _ => Err(Error::Runtime("Operands must be two numbers.".to_string())),

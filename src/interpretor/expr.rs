@@ -1,7 +1,7 @@
-use crate::{visitor, ErrorInfo, Expr, Interpretor, LiteralType, Object, Span, TokenType};
+use crate::{visitor, ErrorInfo, Expr, Interpretor, LiteralType, Object, Span, TokenType, TokenInfo};
 
 impl visitor::Expr for Interpretor {
-    fn visit_literal_expr(&mut self, value: &LiteralType, _: &Span) -> Result<Object, ErrorInfo> {
+    fn visit_literal_expr(&mut self, value: &LiteralType) -> Result<Object, ErrorInfo> {
         Ok(match value {
             LiteralType::Nil => Object::Nil,
             LiteralType::Boolean(b) => Object::Boolean(*b),
@@ -12,38 +12,25 @@ impl visitor::Expr for Interpretor {
 
     fn visit_unary_expr(
         &mut self,
-        op: &TokenType,
+        op: &TokenInfo,
         right: &Box<Expr>,
-        span: &Span,
     ) -> Result<Object, ErrorInfo> {
         self.eval(right)?
-            .to_unary(op)
-            .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
+            .to_unary(&op.token)
+            .map_err(|e| ErrorInfo::new_with_span(e, op.span.to_owned()))
     }
 
     fn visit_binary_expr(
         &mut self,
         left: &Box<Expr>,
-        op: &TokenType,
+        op: &TokenInfo,
         right: &Box<Expr>,
-        span: &Span,
     ) -> Result<Object, ErrorInfo> {
         let left = self.eval(left)?;
         let right = self.eval(right)?;
-        Object::binary(left, op, right).map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
+        Object::binary(left, &op.token, right).map_err(|e| ErrorInfo::new_with_span(e, op.span.to_owned()))
     }
 
-    fn visit_logical_expr(
-        &mut self,
-        left: &Box<Expr>,
-        op: &TokenType,
-        right: &Box<Expr>,
-        span: &Span,
-    ) -> Result<Object, ErrorInfo> {
-        let left = self.eval(left)?;
-        let right = self.eval(right)?;
-        Object::logical(left, op, right).map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
-    }
 
     fn visit_grouping_expr(&mut self, expr: &Box<Expr>, span: &Span) -> Result<Object, ErrorInfo> {
         self.eval(expr)
@@ -129,7 +116,7 @@ mod test {
         let input = "
         const a = 1 + 2 * 3;  # declaring a variable
         const a = 100;        # redeclaring the const variable
-        "; 
+        ";
         let lexer = Lexer::new(input.to_string());
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program().unwrap();

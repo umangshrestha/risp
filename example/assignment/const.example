@@ -1,0 +1,9 @@
+# const canbe declared as
+const variable = "THIS IS A CONSTANT";
+print variable;  #[output]: THIS IS A CONSTANT
+
+# We cannot redclare a const variable
+variable = 20;       #[output]: SyntaxError: cannot reassign a constant variable
+const variable = 10; #[output]: SyntaxError: cannot reassign a constant variable
+# Unlike let const requires an argument to proceed
+const a;             #[output]:  SyntaxError: cannot declare a constant without a value

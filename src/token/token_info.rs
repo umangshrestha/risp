@@ -7,8 +7,8 @@ pub struct TokenInfo {
 }
 
 impl TokenInfo {
-    pub fn new(token: TokenType, start: usize, end: usize, line: usize) -> Self {
-       let span = Span {start, end, line };
+    pub fn new(token: TokenType, start: usize, end: usize, line: usize, line_start: usize) -> Self {
+       let span = Span {start, end, line, line_start };
         Self {
             token,
             span

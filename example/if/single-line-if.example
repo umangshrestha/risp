@@ -1,0 +1,5 @@
+# single line block doesn't require curly braces {}
+if (true)  
+    print "truthy"; 
+else  
+    print "falsy";

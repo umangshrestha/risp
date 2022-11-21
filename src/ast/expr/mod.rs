@@ -1,4 +1,4 @@
-use crate::{ErrorInfo, LiteralType, Object, Span, TokenType};
+use crate::{ErrorInfo, LiteralType, Object, Span, TokenType, TokenInfo};
 use std::fmt;
 
 mod visitor;
@@ -13,9 +13,8 @@ pub enum Expr {
     },
     Binary {
         left: Box<Expr>,
-        op: TokenType,
+        op: TokenInfo,
         right: Box<Expr>,
-        span: Span,
     },
     Call {
         callee: Box<Expr>,
@@ -34,13 +33,6 @@ pub enum Expr {
     },
     Literal {
         value: LiteralType,
-        span: Span,
-    },
-    Logical {
-        left: Box<Expr>,
-        op: TokenType,
-        right: Box<Expr>,
-        span: Span,
     },
     Set {
         object: Box<Expr>,
@@ -53,9 +45,8 @@ pub enum Expr {
         span: Span,
     },
     Unary {
-        op: TokenType,
+        op: TokenInfo,
         right: Box<Expr>,
-        span: Span,
     },
     Variable {
         name: String,
@@ -71,8 +62,7 @@ impl Expr {
                 left,
                 op,
                 right,
-                span,
-            } => visitor.visit_binary_expr(left, op, right, span),
+            } => visitor.visit_binary_expr(left, op, right),
             Expr::Call {
                 callee,
                 paren,
@@ -81,13 +71,7 @@ impl Expr {
             } => visitor.visit_call_expr(callee, paren, args, span),
             Expr::Get { object, name, span } => visitor.visit_get_expr(object, name, span),
             Expr::Grouping { expr, span } => visitor.visit_grouping_expr(expr, span),
-            Expr::Literal { value, span } => visitor.visit_literal_expr(value, span),
-            Expr::Logical {
-                left,
-                op,
-                right,
-                span,
-            } => visitor.visit_logical_expr(left, op, right, span),
+            Expr::Literal { value } => visitor.visit_literal_expr(value),
             Expr::Set {
                 object,
                 name,
@@ -95,7 +79,7 @@ impl Expr {
                 span,
             } => visitor.visit_set_expr(object, name, value, span),
             Expr::Super { name, span } => visitor.visit_super_expr(name, span),
-            Expr::Unary { op, right, span } => visitor.visit_unary_expr(op, right, span),
+            Expr::Unary { op, right} => visitor.visit_unary_expr(op, right),
             Expr::Variable { name, span } => visitor.visit_variable_expr(name, span),
         }
     }
@@ -113,8 +97,7 @@ impl fmt::Display for Expr {
                 left,
                 op,
                 right,
-                span: _,
-            } => write!(f, "({op} {left} {right})"),
+            } => write!(f, "({} {left} {right})", op.token),
             Expr::Call {
                 callee,
                 paren: _,
@@ -127,13 +110,7 @@ impl fmt::Display for Expr {
                 span: _,
             } => write!(f, "(get {object} {name})"),
             Expr::Grouping { expr, span: _ } => write!(f, "{expr}"),
-            Expr::Literal { value, span: _ } => write!(f, "{:?}", value),
-            Expr::Logical {
-                left,
-                op,
-                right,
-                span: _,
-            } => write!(f, "({op} {left} {right})"),
+            Expr::Literal { value } => write!(f, "{:?}", value),
             Expr::Set {
                 object,
                 name,
@@ -141,7 +118,7 @@ impl fmt::Display for Expr {
                 span: _,
             } => write!(f, "(set {object} {name} {value})"),
             Expr::Super { name, span: _ } => write!(f, "(super {name})"),
-            Expr::Unary { op, right, span: _ } => write!(f, "({op} {right})"),
+            Expr::Unary { op, right} => write!(f, "({} {right})", op.token),
             Expr::Variable { name, span: _ } => write!(f, "{name}"),
         }
     }

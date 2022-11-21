@@ -1,4 +1,4 @@
-use crate::{ErrorInfo, Expr, Span, Object};
+use crate::{ErrorInfo, Expr, Object, Span};
 
 mod visitor;
 pub use visitor::Visitor;
@@ -20,14 +20,12 @@ pub enum Stmt {
         span: Span,
     },
     Block {
-        stmt: Vec<Stmt>,
-        span: Span,
+        stmts: Vec<Stmt>,
     },
     If {
         condition: Expr,
         truthy: Box<Stmt>,
         falsy: Option<Box<Stmt>>,
-        span: Span,
     },
     While {
         condition: Expr,
@@ -49,13 +47,6 @@ pub enum Stmt {
         methods: Vec<Stmt>,
         span: Span,
     },
-    For {
-        initializer: Option<Box<Stmt>>,
-        condition: Option<Expr>,
-        increment: Option<Expr>,
-        body: Box<Stmt>,
-        span: Span,
-    },
     Break {
         span: Span,
     },
@@ -65,7 +56,7 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<Object, ErrorInfo> {
+    pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<(), ErrorInfo> {
         match self {
             Stmt::Expr { expr } => visitor.visit_expr_stmt(expr),
             Stmt::Print { expr } => visitor.visit_print_stmt(expr),
@@ -75,13 +66,12 @@ impl Stmt {
                 is_const,
                 span,
             } => visitor.visit_let_stmt(name, value, *is_const, span),
-            Stmt::Block { stmt, span } => visitor.visit_block_stmt(stmt, span),
+            Stmt::Block { stmts } => visitor.visit_block_stmt(stmts),
             Stmt::If {
                 condition,
                 truthy,
                 falsy,
-                span,
-            } => visitor.visit_if_stmt(condition, truthy, falsy, span),
+            } => visitor.visit_if_stmt(condition, truthy, falsy),
             Stmt::While { condition, body } => visitor.visit_while_stmt(condition, body),
             Stmt::Function {
                 name,
@@ -96,13 +86,6 @@ impl Stmt {
                 methods,
                 span,
             } => visitor.visit_class_stmt(name, super_class, methods, span),
-            Stmt::For {
-                initializer,
-                condition,
-                increment,
-                body,
-                span,
-            } => visitor.visit_for_stmt(initializer, condition, increment, body, span),
             Stmt::Break { span } => visitor.visit_break_stmt(span),
             Stmt::Continue { span } => visitor.visit_continue_stmt(span),
         }
@@ -126,10 +109,10 @@ impl fmt::Display for Stmt {
                     write!(f, "(let {} {})", name, value.as_ref().unwrap())
                 }
             }
-            Stmt::Block { stmt, span: _ } => {
+            Stmt::Block { stmts } => {
                 let mut s = String::new();
                 s.push_str("(");
-                for stmt in stmt {
+                for stmt in stmts {
                     s.push_str(&format!("{}", stmt));
                 }
                 write!(f, "{})", s)
@@ -138,7 +121,6 @@ impl fmt::Display for Stmt {
                 condition,
                 truthy,
                 falsy,
-                span: _,
             } => {
                 write!(f, "(if {condition} then {truthy}")?;
                 if let Some(else_block) = falsy {
@@ -146,10 +128,7 @@ impl fmt::Display for Stmt {
                 }
                 Ok(())
             }
-            Stmt::While {
-                condition,
-                body,
-            } => write!(f, "(while ({}) {})", condition, body),
+            Stmt::While { condition, body } => write!(f, "(while ({}) {})", condition, body),
             Stmt::Function {
                 name,
                 params,
@@ -191,30 +170,6 @@ impl fmt::Display for Stmt {
                     s.push_str(&format!("{}\n", method));
                 }
                 s.push_str("}");
-                write!(f, "{}", s)
-            }
-            Stmt::For {
-                initializer,
-                condition,
-                increment,
-                body,
-                span: _,
-            } => {
-                let mut s = String::new();
-                s.push_str("for (");
-                if let Some(initializer) = initializer {
-                    s.push_str(&format!("{}", initializer));
-                }
-                s.push_str("; ");
-                if let Some(condition) = condition {
-                    s.push_str(&format!("{}", condition));
-                }
-                s.push_str("; ");
-                if let Some(increment) = increment {
-                    s.push_str(&format!("{}", increment));
-                }
-                s.push_str(") ");
-                s.push_str(&format!("{}", body));
                 write!(f, "{}", s)
             }
             Stmt::Break { span: _ } => write!(f, "break"),

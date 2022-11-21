@@ -15,7 +15,7 @@ pub struct Parser {
 impl Parser {
     pub fn new(mut lexer: Lexer) -> Self {
         Self {
-            prev: TokenInfo::new(TokenType::Eof, 0, 0, 0),
+            prev: TokenInfo::new(TokenType::Eof, 0, 0, 0, 0),
             curr: lexer.next(),
             lexer,
         }
@@ -136,49 +136,56 @@ impl Parser {
     }
 
     fn return_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let (_, span) = self.advance();
+        let val = self.advance();
         let mut value = None;
         if !self.curr.is(TokenType::Semicolon) {
             value = Some(self.expression()?);
         }
         self.should_be(TokenType::Semicolon)?;
-        Ok(Stmt::Return { value, span })
+        Ok(Stmt::Return { value, span: val.span })
     }
 
     fn for_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let (_, span) = self.advance();
+        self.advance();
+        let mut stmts = Vec::new();
         self.should_be(TokenType::LParen)?;
-        let initializer = match self.curr.token {
-            TokenType::Semicolon => None,
-            TokenType::Let => Some(Box::new(self.let_declaration()?)),
-            _ => Some(Box::new(self.expression_statement()?)),
+
+        match self.curr.token {
+            TokenType::Semicolon => {}
+            TokenType::Let | TokenType::Const => stmts.push(self.let_declaration()?),
+            _ => stmts.push(self.expression_statement()?),
         };
 
-        let condition = match self.curr.token {
-            TokenType::Semicolon => None,
-            _ => Some(self.expression()?),
+        let condition = if self.curr.is(TokenType::Semicolon) {
+            Expr::Literal {
+                value: LiteralType::Boolean(true),
+            }
+        } else {
+            self.expression()?
         };
         self.should_be(TokenType::Semicolon)?;
-
         let increment = match self.curr.token {
             TokenType::RParen => None,
             _ => Some(self.expression()?),
         };
         self.should_be(TokenType::RParen)?;
 
-        let body = self.statement()?;
-
-        Ok(Stmt::For {
-            increment,
+        let mut body = self.statement()?;
+        if let Some(expr) = increment {
+            body = Stmt::Block {
+                stmts: vec![body, Stmt::Expr { expr }],
+            }
+        }
+        let while_stmt = Stmt::While {
             condition,
-            initializer,
             body: Box::new(body),
-            span,
-        })
+        };
+        stmts.push(while_stmt);
+        Ok(Stmt::Block { stmts })
     }
 
     fn if_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let (_, span) = self.advance();
+        self.advance();
         self.should_be(TokenType::LParen)?;
         let condition = self.expression()?;
         self.should_be(TokenType::RParen)?;
@@ -192,7 +199,6 @@ impl Parser {
             condition,
             truthy,
             falsy,
-            span,
         })
     }
 
@@ -206,13 +212,13 @@ impl Parser {
     }
 
     fn block_statement(&mut self) -> Result<Stmt, ErrorInfo> {
-        let span = self.should_be(TokenType::LCurly)?;
-        let mut stmt = Vec::new();
+        self.should_be(TokenType::LCurly)?;
+        let mut stmts = Vec::new();
         while !self.curr.is(TokenType::RCurly) && !self.curr.is(TokenType::Eof) {
-            stmt.push(self.declaration()?);
+            stmts.push(self.declaration()?);
         }
         self.should_be(TokenType::RCurly)?;
-        Ok(Stmt::Block { stmt, span })
+        Ok(Stmt::Block { stmts })
     }
 }
 
@@ -233,7 +239,7 @@ impl Parser {
         | TokenType::MulEq
         | TokenType::XorEq = self.curr.token
         {
-            let (_, span) = self.advance();
+            let val = self.advance();
             let right = self.or()?;
             return match left {
                 Expr::Variable { name, span } => Ok(Expr::Assign {
@@ -249,7 +255,7 @@ impl Parser {
                 }),
                 _ => {
                     let error = Error::Parse("Invalid assignment target".to_string());
-                    return Err(ErrorInfo::new_with_span(error, span));
+                    return Err(ErrorInfo::new_with_span(error, val.span));
                 }
             };
         }
@@ -260,13 +266,12 @@ impl Parser {
     fn or(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.and()?;
         while self.curr.is(TokenType::Or) {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.and()?;
-            left = Expr::Logical {
+            left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -275,13 +280,12 @@ impl Parser {
     fn and(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.equality()?;
         while self.curr.is(TokenType::LAnd) {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.equality()?;
-            left = Expr::Logical {
+            left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -290,13 +294,12 @@ impl Parser {
     fn equality(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.comparison()?;
         while let TokenType::Eq | TokenType::Ne = self.curr.token {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.comparison()?;
-            left = Expr::Logical {
+            left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -306,13 +309,12 @@ impl Parser {
         let mut left = self.term()?;
         while let TokenType::Gt | TokenType::Gte | TokenType::Lt | TokenType::Lte = self.curr.token
         {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.term()?;
-            left = Expr::Logical {
+            left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -326,13 +328,12 @@ impl Parser {
         | TokenType::And
         | TokenType::Xor = self.curr.token
         {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.factor()?;
             left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -341,13 +342,12 @@ impl Parser {
     fn factor(&mut self) -> Result<Expr, ErrorInfo> {
         let mut left = self.unary()?;
         while let TokenType::Times | TokenType::Divide = self.curr.token {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.unary()?;
             left = Expr::Binary {
                 left: Box::new(left),
                 op,
                 right: Box::new(right),
-                span,
             };
         }
         Ok(left)
@@ -355,12 +355,11 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, ErrorInfo> {
         if let TokenType::Minus | TokenType::Not | TokenType::Plus = self.curr.token {
-            let (op, span) = self.advance();
+            let op = self.advance();
             let right = self.unary()?;
             Ok(Expr::Unary {
                 op,
                 right: Box::new(right),
-                span,
             })
         } else {
             self.call()
@@ -406,27 +405,27 @@ impl Parser {
             TokenType::True => {
                 self.advance();
                 let value = LiteralType::Boolean(true);
-                Ok(Expr::Literal { value, span })
+                Ok(Expr::Literal { value })
             }
             TokenType::False => {
                 self.advance();
                 let value = LiteralType::Boolean(false);
-                Ok(Expr::Literal { value, span })
+                Ok(Expr::Literal { value })
             }
             TokenType::Nil => {
                 self.advance();
                 let value = LiteralType::Nil;
-                Ok(Expr::Literal { value, span })
+                Ok(Expr::Literal { value })
             }
             TokenType::Number(x) => {
                 self.advance();
                 let value = LiteralType::Number(x);
-                Ok(Expr::Literal { value, span })
+                Ok(Expr::Literal { value })
             }
             TokenType::String(x) => {
                 self.advance();
                 let value = LiteralType::String(x);
-                Ok(Expr::Literal { value, span })
+                Ok(Expr::Literal { value })
             }
             TokenType::Identifier(name) => {
                 self.advance();
@@ -457,32 +456,32 @@ impl Parser {
 
 impl Parser {
     fn should_be(&mut self, token_type: TokenType) -> Result<Span, ErrorInfo> {
-        let (val, span) = self.advance();
-        if val == token_type {
-            Ok(span)
+        let val = self.advance();
+        if val.token == token_type {
+            Ok(val.span)
         } else {
             let error = Error::Syntax(format!(
                 "Expected: \"{}\" Found: \"{}\"",
-                token_type, self.curr.token
+                token_type, val.token
             ));
-            Err(ErrorInfo::new_with_span(error, span))
+            Err(ErrorInfo::new_with_span(error, val.span))
         }
     }
 
     fn get_identifier(&mut self) -> Result<(String, Span), ErrorInfo> {
-        let (val, span) = self.advance();
-        if let TokenType::Identifier(name) = val {
-            Ok((name, span))
+        let val = self.advance();
+        if let TokenType::Identifier(name) = val.token {
+            Ok((name, val.span))
         } else {
-            let error = Error::Syntax(format!("Expected: \"Identifier\" Found: \"{}\"", val));
-            Err(ErrorInfo::new_with_span(error, span))
+            let error = Error::Syntax(format!("Expected: \"Identifier\" Found: \"{}\"", val.token));
+            Err(ErrorInfo::new_with_span(error, val.span))
         }
     }
 
-    fn advance(&mut self) -> (TokenType, Span) {
+    fn advance(&mut self) -> TokenInfo {
         self.prev = self.curr.clone();
         self.curr = self.lexer.next();
-        (self.prev.token.clone(), self.prev.span.clone())
+        self.prev.clone()
     }
 }
 

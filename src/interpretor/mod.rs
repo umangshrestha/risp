@@ -36,7 +36,7 @@ impl Interpretor {
         expr.accept(self)
     }
 
-    pub fn exec(&mut self, stmt: &Stmt) -> Result<Object, ErrorInfo> {
+    pub fn exec(&mut self, stmt: &Stmt) -> Result<(), ErrorInfo> {
         stmt.accept(self)
     }
 }

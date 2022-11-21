@@ -1,4 +1,4 @@
-use crate::{ErrorInfo, Expr, LiteralType, Object, Span, TokenType};
+use crate::{ErrorInfo, Expr, LiteralType, Object, Span, TokenType, TokenInfo};
 
 pub trait Visitor {
     fn visit_assign_expr(
@@ -10,9 +10,8 @@ pub trait Visitor {
     fn visit_binary_expr(
         &mut self,
         left: &Box<Expr>,
-        op: &TokenType,
+        op: &TokenInfo,
         right: &Box<Expr>,
-        span: &Span,
     ) -> Result<Object, ErrorInfo>;
     fn visit_call_expr(
         &mut self,
@@ -28,15 +27,7 @@ pub trait Visitor {
         span: &Span,
     ) -> Result<Object, ErrorInfo>;
     fn visit_grouping_expr(&mut self, expr: &Box<Expr>, span: &Span) -> Result<Object, ErrorInfo>;
-    fn visit_literal_expr(&mut self, value: &LiteralType, span: &Span)
-        -> Result<Object, ErrorInfo>;
-    fn visit_logical_expr(
-        &mut self,
-        left: &Box<Expr>,
-        op: &TokenType,
-        right: &Box<Expr>,
-        span: &Span,
-    ) -> Result<Object, ErrorInfo>;
+    fn visit_literal_expr(&mut self, value: &LiteralType) -> Result<Object, ErrorInfo>;
     fn visit_set_expr(
         &mut self,
         object: &Box<Expr>,
@@ -47,9 +38,8 @@ pub trait Visitor {
     fn visit_super_expr(&mut self, name: &String, span: &Span) -> Result<Object, ErrorInfo>;
     fn visit_unary_expr(
         &mut self,
-        op: &TokenType,
+        op: &TokenInfo,
         right: &Box<Expr>,
-        span: &Span,
     ) -> Result<Object, ErrorInfo>;
     fn visit_variable_expr(&mut self, name: &String, span: &Span) -> Result<Object, ErrorInfo>;
 }

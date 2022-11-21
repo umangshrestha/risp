@@ -10,10 +10,10 @@ pub struct ErrorInfo {
 }
 
 impl ErrorInfo {
-    pub fn new(error: Error, line: usize, start: usize, end: usize) -> Self {
+    pub fn new(error: Error, line: usize, line_start: usize, start: usize, end: usize) -> Self {
         Self {
             error,
-            span: Span::new(line, start, end),
+            span: Span::new(line, line_start, start, end),
         }
     }
 
@@ -25,6 +25,6 @@ impl ErrorInfo {
     }
 
     pub fn report(&self) {
-        eprintln!("{:?}", self);
+        eprintln!("{}, line {}, pos {}", self.error, self.span.line, self.span.start - self.span.line_start);
     }
 }

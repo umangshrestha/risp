@@ -1,0 +1,10 @@
+let a;
+
+#provided a variable is already defined you can assign value to it inside an statement
+print(a = 20); # [output]: 20
+
+
+# that means you can use it inside if condition as well
+if (a = 1) 
+    print a;   # print a
+

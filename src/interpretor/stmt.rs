@@ -1,15 +1,15 @@
 use crate::{visitor, ErrorInfo, Expr, Interpretor, Object, Span, Stmt};
 
 impl visitor::Stmt for Interpretor {
-    fn visit_print_stmt(&mut self, expr: &Expr) -> Result<Object, ErrorInfo> {
+    fn visit_print_stmt(&mut self, expr: &Expr) -> Result<(),  ErrorInfo> {
         let out = self.eval(expr)?;
         println!("{}", out);
-        Ok(Object::Nil)
+        Ok(())
     }
 
-    fn visit_expr_stmt(&mut self, expr: &Expr) -> Result<Object, ErrorInfo> {
+    fn visit_expr_stmt(&mut self, expr: &Expr) -> Result<(),  ErrorInfo> {
         self.eval(expr)?;
-        Ok(Object::Nil)
+        Ok(())
     }
 
     fn visit_let_stmt(
@@ -18,7 +18,7 @@ impl visitor::Stmt for Interpretor {
         value: &Option<Expr>,
         is_const: bool,
         span: &Span,
-    ) -> Result<Object, ErrorInfo> {
+    ) -> Result<(),  ErrorInfo> {
         let value = value
             .as_ref()
             .map(|v| self.eval(v))
@@ -30,31 +30,49 @@ impl visitor::Stmt for Interpretor {
             .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
     }
 
-    fn visit_while_stmt(&mut self, condition: &Expr, body: &Box<Stmt>) -> Result<Object, ErrorInfo> {
+    fn visit_while_stmt(
+        &mut self,
+        condition: &Expr,
+        body: &Box<Stmt>,
+    ) -> Result<(),  ErrorInfo> {
         let mut flag = self.eval(condition)?;
         while flag.to_boolean() {
             self.exec(body)?;
             flag = self.eval(condition)?;
         }
-        Ok(Object::Nil)
+        Ok(())
     }
 
-    fn visit_return_stmt(&mut self, value: &Option<Expr>, span: &Span) -> Result<Object, ErrorInfo> {
+    fn visit_return_stmt(
+        &mut self,
+        value: &Option<Expr>,
+        span: &Span,
+    ) -> Result<(),  ErrorInfo> {
         todo!();
     }
-    fn visit_block_stmt(&mut self, stmt: &Vec<Stmt>, span: &Span) -> Result<Object, ErrorInfo> {
-        todo!();
+    fn visit_block_stmt(&mut self, stmts: &Vec<Stmt>) -> Result<(),  ErrorInfo> {
+       for stmt in stmts {
+            self.exec(stmt)?;
+       }
+       Ok(())
     }
-
 
     fn visit_if_stmt(
         &mut self,
         condition: &Expr,
         truthy: &Box<Stmt>,
         falsy: &Option<Box<Stmt>>,
-        span: &Span,
-    ) -> Result<Object, ErrorInfo> {
-        todo!();
+    ) -> Result<(),  ErrorInfo> {
+        if self
+            .eval(condition)?
+            .to_boolean()
+        {
+            self.exec(truthy)
+        } else if let Some(expr) = falsy {
+            self.exec(expr)
+        } else {
+            Ok(())
+        }
     }
 
     fn visit_function_stmt(
@@ -63,7 +81,7 @@ impl visitor::Stmt for Interpretor {
         params: &Vec<String>,
         body: &Box<Stmt>,
         span: &Span,
-    ) -> Result<Object, ErrorInfo> {
+    ) -> Result<(),  ErrorInfo> {
         todo!();
     }
 
@@ -73,27 +91,15 @@ impl visitor::Stmt for Interpretor {
         super_class: &Option<String>,
         methods: &Vec<Stmt>,
         span: &Span,
-    ) -> Result<Object, ErrorInfo> {
+    ) -> Result<(),  ErrorInfo> {
         todo!();
     }
 
-    fn visit_for_stmt(
-        &mut self,
-        initializer: &Option<Box<Stmt>>,
-        condition: &Option<Expr>,
-        increment: &Option<Expr>,
-        body: &Box<Stmt>,
-        span: &Span,
-    ) -> Result<Object, ErrorInfo> {
+    fn visit_break_stmt(&mut self, span: &Span) -> Result<(),  ErrorInfo> {
         todo!();
     }
 
-
-    fn visit_break_stmt(&mut self, span: &Span) -> Result<Object, ErrorInfo> {
-        todo!();
-    }
-
-    fn visit_continue_stmt(&mut self, span: &Span) -> Result<Object, ErrorInfo> {
+    fn visit_continue_stmt(&mut self, span: &Span) -> Result<(),  ErrorInfo> {
         todo!();
     }
 }

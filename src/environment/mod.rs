@@ -15,7 +15,7 @@ impl Environment {
         }
     }
     
-    pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<Object, Error> {
+    pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<(), Error> {
         if is_const && value.is_nil() {
             return Err(Error::Syntax(
                 "cannot declare a constant without a value".to_string(),
@@ -29,7 +29,7 @@ impl Environment {
             }
         }
         self.values.insert(name, (value.clone(), is_const));
-        Ok(value)
+        Ok(())
     }
 
     pub fn get(&mut self, name: &String) -> Result<Object, Error> {
@@ -46,7 +46,7 @@ impl Environment {
         if let Some((_, is_const)) = self.values.get(&name.to_string()) {
             if *is_const {
                 return Err(Error::Syntax(
-                    "cannot reassign a constant variable".to_string(),
+                    "cannot reassign to a constant variable".to_string(),
                 ));
             }
             self.values.insert(name.to_string(), (value.clone(), *is_const));

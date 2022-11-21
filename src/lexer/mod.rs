@@ -3,8 +3,9 @@ use crate::{Error, ErrorInfo};
 
 pub struct Lexer {
     start: usize,
-    curr: usize,
+    curr: usize,    
     line: usize,
+    line_start: usize,
     data: Vec<char>,
 }
 
@@ -15,6 +16,7 @@ impl Lexer {
             start: 0,
             curr: 0,
             line: 1,
+            line_start: 0,
             data: data.chars().collect(),
         }
     }
@@ -23,9 +25,9 @@ impl Lexer {
         loop {
             let result = self.scan();
             if result.is_ok() {
-                return TokenInfo::new(result.unwrap(), self.start, self.curr, self.line);
+                return TokenInfo::new(result.unwrap(), self.start, self.curr, self.line, self.line_start);
             } else {
-                let err = ErrorInfo::new(result.unwrap_err(), self.line, self.start, self.curr);
+                let err = ErrorInfo::new(result.unwrap_err(), self.line, self.line_start, self.start, self.curr);
                 err.report();
             }
         }
@@ -202,6 +204,7 @@ impl Lexer {
         let ch = self.data[self.curr];
         if ch == '\n' {
             self.line += 1;
+            self.line_start = self.curr;
         }
         self.curr += 1;
         ch

@@ -21,3 +21,4 @@ print b;         # [output]: Yaay!!!
 # We can always overwrite variable declared with let;
 let a = "NEW VARIABLE";
 print a;          # [output]: NEW VARIABLE
+
