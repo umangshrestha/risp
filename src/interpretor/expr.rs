@@ -55,7 +55,11 @@ impl visitor::Expr for Interpretor {
         value: &Box<Expr>,
         span: &Span,
     ) -> Result<Object, ErrorInfo> {
-        todo!();
+        let value = self.eval(value)?;
+        self.environment
+            .borrow_mut()
+            .assign(name, value)
+            .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
     }
     fn visit_call_expr(
         &mut self,
@@ -71,10 +75,11 @@ impl visitor::Expr for Interpretor {
         &mut self,
         object: &Box<Expr>,
         name: &String,
-        span: &Span
+        span: &Span,
     ) -> Result<Object, ErrorInfo> {
         let object = self.eval(object)?;
-        let output = self.environment
+        let output = self
+            .environment
             .borrow_mut()
             .get(name)
             .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))?;
@@ -95,7 +100,10 @@ impl visitor::Expr for Interpretor {
     }
 
     fn visit_variable_expr(&mut self, name: &String, span: &Span) -> Result<Object, ErrorInfo> {
-        todo!();
+        self.environment
+            .borrow_mut()
+            .get(name)
+            .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))
     }
 }
 
@@ -104,6 +112,7 @@ mod test {
     use crate::interpretor::Interpretor;
     use crate::lexer::Lexer;
     use crate::parser::Parser;
+    use crate::Object;
 
     #[test]
     fn test_literal() {
@@ -117,11 +126,20 @@ mod test {
 
     #[test]
     fn test_constant() {
-        let input = "const a = 1 + 2 * 3;";
+        let input = "
+        const a = 1 + 2 * 3;  # declaring a variable
+        const a = 100;        # redeclaring the const variable
+        "; 
         let lexer = Lexer::new(input.to_string());
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program().unwrap();
         let mut interpretor = Interpretor::new();
         interpretor.interpret(program);
+        let output = interpretor
+            .environment
+            .borrow_mut()
+            .get(&"a".to_string())
+            .unwrap();
+        assert_eq!(output, Object::Number(7.0));
     }
 }

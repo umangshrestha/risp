@@ -1,0 +1,10 @@
+# Welcome to my programming language
+# As an age old tradition we will start by printing hello world
+
+print "Hello, World!" ; # [output]: Hello, World!
+print("Hello, World!"); # [output]: Hello, World!
+
+
+# From the above example we can  notice few things.
+# 1. The parenthesis for print is optional and unlike python 2 produces same result
+# 2. The statement ends with semicolon.

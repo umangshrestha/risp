@@ -166,6 +166,12 @@ impl Lexer {
                 }
                 return self.scan();
             }
+            '#' => {
+                while self.peek_char() != '\n' && !self.is_eof() {
+                    self.next_char();
+                }
+                return self.scan();
+            }
             '0'..='9' => {
                 let start = self.curr;
                 while self.is_digit(self.peek_char()) || self.peek_char() == '.' {
@@ -315,7 +321,9 @@ mod tests {
 
     #[test]
     fn test_function() {
-        let input = "fn add(a, b) {
+        let input = "
+        # this is a function for adding two numbers
+        fn add(a, b) {
             return a + b; 
         }
         let a = 1;

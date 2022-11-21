@@ -42,15 +42,15 @@ impl Environment {
         }
     }
 
-    pub fn assign(&mut self, name: &String, value: Object) -> Result<(), Error> {
+    pub fn assign(&mut self, name: &String, value: Object) -> Result<Object, Error> {
         if let Some((_, is_const)) = self.values.get(&name.to_string()) {
             if *is_const {
                 return Err(Error::Syntax(
                     "cannot reassign a constant variable".to_string(),
                 ));
             }
-            self.values.insert(name.to_string(), (value, *is_const));
-            Ok(())
+            self.values.insert(name.to_string(), (value.clone(), *is_const));
+            return Ok(value);
         } else if let Some(enclosing) = &self.enclosing {
             enclosing.borrow_mut().assign(name, value)
         } else {
