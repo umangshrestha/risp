@@ -1,4 +1,4 @@
-use crate::{ErrorInfo, LiteralType, Object, Span, TokenType, TokenInfo};
+use crate::{ErrorInfo, LiteralType, Object, Span, TokenInfo, TokenType};
 use std::fmt;
 
 mod visitor;
@@ -18,7 +18,6 @@ pub enum Expr {
     },
     Call {
         callee: Box<Expr>,
-        paren: TokenType,
         args: Vec<Expr>,
         span: Span,
     },
@@ -58,17 +57,8 @@ impl Expr {
     pub fn accept<V: Visitor>(&self, visitor: &mut V) -> Result<Object, ErrorInfo> {
         match self {
             Expr::Assign { name, value, span } => visitor.visit_assign_expr(name, value, span),
-            Expr::Binary {
-                left,
-                op,
-                right,
-            } => visitor.visit_binary_expr(left, op, right),
-            Expr::Call {
-                callee,
-                paren,
-                args,
-                span,
-            } => visitor.visit_call_expr(callee, paren, args, span),
+            Expr::Binary { left, op, right } => visitor.visit_binary_expr(left, op, right),
+            Expr::Call { callee, args, span } => visitor.visit_call_expr(callee, args, span),
             Expr::Get { object, name, span } => visitor.visit_get_expr(object, name, span),
             Expr::Grouping { expr, span } => visitor.visit_grouping_expr(expr, span),
             Expr::Literal { value } => visitor.visit_literal_expr(value),
@@ -79,7 +69,7 @@ impl Expr {
                 span,
             } => visitor.visit_set_expr(object, name, value, span),
             Expr::Super { name, span } => visitor.visit_super_expr(name, span),
-            Expr::Unary { op, right} => visitor.visit_unary_expr(op, right),
+            Expr::Unary { op, right } => visitor.visit_unary_expr(op, right),
             Expr::Variable { name, span } => visitor.visit_variable_expr(name, span),
         }
     }
@@ -88,38 +78,21 @@ impl Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Expr::Assign {
-                name,
-                value,
-                span: _,
-            } => write!(f, "(= {name} {value})"),
-            Expr::Binary {
-                left,
-                op,
-                right,
-            } => write!(f, "({} {left} {right})", op.token),
-            Expr::Call {
-                callee,
-                paren: _,
-                args,
-                span: _,
-            } => write!(f, "(call {callee} {:?})", args),
-            Expr::Get {
-                object,
-                name,
-                span: _,
-            } => write!(f, "(get {object} {name})"),
-            Expr::Grouping { expr, span: _ } => write!(f, "{expr}"),
+            Expr::Assign { name, value, .. } => write!(f, "(= {name} {value})"),
+            Expr::Binary { left, op, right } => write!(f, "({} {left} {right})", op.token),
+            Expr::Call { callee, args, .. } => write!(f, "(call {callee} {:?})", args),
+            Expr::Get { object, name, .. } => write!(f, "(get {object} {name})"),
+            Expr::Grouping { expr, .. } => write!(f, "{expr}"),
             Expr::Literal { value } => write!(f, "{:?}", value),
             Expr::Set {
                 object,
                 name,
                 value,
-                span: _,
+                ..
             } => write!(f, "(set {object} {name} {value})"),
-            Expr::Super { name, span: _ } => write!(f, "(super {name})"),
-            Expr::Unary { op, right} => write!(f, "({} {right})", op.token),
-            Expr::Variable { name, span: _ } => write!(f, "{name}"),
+            Expr::Super { name, .. } => write!(f, "(super {name})"),
+            Expr::Unary { op, right } => write!(f, "({} {right})", op.token),
+            Expr::Variable { name, .. } => write!(f, "{name}"),
         }
     }
 }

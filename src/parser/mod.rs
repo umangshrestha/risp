@@ -142,7 +142,10 @@ impl Parser {
             value = Some(self.expression()?);
         }
         self.should_be(TokenType::Semicolon)?;
-        Ok(Stmt::Return { value, span: val.span })
+        Ok(Stmt::Return {
+            value,
+            span: val.span,
+        })
     }
 
     fn for_statement(&mut self) -> Result<Stmt, ErrorInfo> {
@@ -236,16 +239,19 @@ impl Parser {
         | TokenType::DivideEq
         | TokenType::AndEq
         | TokenType::OrEq
-        | TokenType::TimesEq
         | TokenType::XorEq = self.curr.token
         {
             let mut op = self.advance();
             let mut right = self.or()?;
             if let Some(token) = desugar_assign(op.token) {
                 op.token = token;
-                right = Expr::Binary { left: Box::new(left.clone()), op: op.clone(), right: Box::new(right) };
+                right = Expr::Binary {
+                    left: Box::new(left.clone()),
+                    op: op.clone(),
+                    right: Box::new(right),
+                };
             }
-             
+
             return match left {
                 Expr::Variable { name, span } => Ok(Expr::Assign {
                     name,
@@ -374,33 +380,45 @@ impl Parser {
     fn call(&mut self) -> Result<Expr, ErrorInfo> {
         let mut expr = self.primary()?;
         loop {
-            match self.curr.token {
-                TokenType::LParen => {
-                    self.advance();
-                    let mut args = Vec::new();
-                    if !self.curr.is(TokenType::RParen) {
-                        loop {
-                            args.push(self.expression()?);
-                            if !self.curr.is(TokenType::Comma) {
-                                break;
-                            }
-                            self.advance();
-                        }
-                    }
-                }
-                TokenType::Dot => {
-                    self.advance();
-                    let (name, span) = self.get_identifier()?;
-                    expr = Expr::Get {
-                        object: Box::new(expr),
-                        name,
-                        span,
-                    };
-                }
-                _ => break,
+            if self.curr.is(TokenType::LParen) {
+                let span = self.curr.span.clone();
+                let args = self.get_argument_list()?;
+                break Ok(Expr::Call {
+                    callee: Box::new(expr),
+                    args,
+                    span
+                });
+            } else if self.curr.is(TokenType::Dot) {
+                self.advance();
+                let (name, span) = self.get_identifier()?;
+                expr = Expr::Get {
+                    object: Box::new(expr),
+                    name,
+                    span
+                };
+            } else {
+                break Ok(expr);
             }
         }
-        Ok(expr)
+    }
+
+    fn get_argument_list(&mut self) -> Result<Vec<Expr>, ErrorInfo> {
+        let mut args = Vec::new();
+        if !self.curr.is(TokenType::RParen) {
+            loop {
+                if args.len() >= 127 {
+                    let error = Error::TooManyParamerters;
+                    return Err(ErrorInfo::new_with_span(error, self.curr.span.clone()));
+                }
+                args.push(self.expression()?);
+                if !self.curr.is(TokenType::Comma) {
+                    break;
+                }
+                self.should_be(TokenType::Comma)?;
+            }
+        }
+        self.should_be(TokenType::RParen)?;
+        Ok(args)
     }
 
     fn primary(&mut self) -> Result<Expr, ErrorInfo> {
@@ -490,8 +508,6 @@ impl Parser {
     }
 }
 
-
-
 pub fn desugar_assign(tok: TokenType) -> Option<TokenType> {
     match tok {
         TokenType::PlusEq => Some(TokenType::Plus),
@@ -505,7 +521,6 @@ pub fn desugar_assign(tok: TokenType) -> Option<TokenType> {
         _ => None,
     }
 }
-
 
 #[cfg(test)]
 mod tests {

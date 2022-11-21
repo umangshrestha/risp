@@ -51,10 +51,14 @@ impl visitor::Expr for Interpretor {
     fn visit_call_expr(
         &mut self,
         callee: &Box<Expr>,
-        paren: &TokenType,
         args: &Vec<Expr>,
         span: &Span,
     ) -> Result<Object, ErrorInfo> {
+        let callee = self.eval(callee)?;
+        let mut arguments = Vec::new();
+        for arg in args {
+            arguments.push(self.eval(arg)?);
+        }
         todo!();
     }
 

@@ -8,6 +8,7 @@ pub enum Error {
     Runtime(String),
     Name(String),
     ZeroDivision,
+    TooManyParamerters
 }
 
 impl fmt::Display for Error {
@@ -19,7 +20,7 @@ impl fmt::Display for Error {
             Error::Runtime(x) => write!(f, "ParseError: {x}"),
             Error::ZeroDivision => write!(f, "ZeroDivisionError: division by zero"),
             Error::Name(x) => write!(f, "NameError: undefined variable \"{x}\""),
-
+            Error::TooManyParamerters => write!(f, "TooManyParamerters: excedded maximum number of parameters"),
         }
     }
 }

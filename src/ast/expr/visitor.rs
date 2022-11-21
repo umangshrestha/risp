@@ -16,7 +16,6 @@ pub trait Visitor {
     fn visit_call_expr(
         &mut self,
         callee: &Box<Expr>,
-        paren: &TokenType,
         args: &Vec<Expr>,
         span: &Span,
     ) -> Result<Object, ErrorInfo>;

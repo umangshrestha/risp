@@ -222,7 +222,7 @@ impl Lexer {
     }
 
     fn is_identifier(&self, ch: char) -> bool {
-        return ('a' <= ch && ch <= 'z') || ('a' <= ch && ch <= 'z') || '_' == ch;
+        return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || '_' == ch;
     }
 
     fn is_next_char(&mut self, ch: char) -> bool {

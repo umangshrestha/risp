@@ -1,0 +1,4 @@
+fn helloWorld() {
+    print "Hello, World!";
+}
+
