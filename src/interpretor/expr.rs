@@ -71,9 +71,14 @@ impl visitor::Expr for Interpretor {
         &mut self,
         object: &Box<Expr>,
         name: &String,
-        span: &Span,
+        span: &Span
     ) -> Result<Object, ErrorInfo> {
-        todo!();
+        let object = self.eval(object)?;
+        let output = self.environment
+            .borrow_mut()
+            .get(name)
+            .map_err(|e| ErrorInfo::new_with_span(e, span.to_owned()))?;
+        Ok(output)
     }
 
     fn visit_set_expr(
@@ -94,18 +99,25 @@ impl visitor::Expr for Interpretor {
     }
 }
 
-
-
 #[cfg(test)]
 mod test {
     use crate::interpretor::Interpretor;
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::visitor::Expr;
 
     #[test]
     fn test_literal() {
         let input = "nil; true; false; 123; \"Hello, world!\";";
+        let lexer = Lexer::new(input.to_string());
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program().unwrap();
+        let mut interpretor = Interpretor::new();
+        interpretor.interpret(program);
+    }
+
+    #[test]
+    fn test_constant() {
+        let input = "const a = 1 + 2 * 3;";
         let lexer = Lexer::new(input.to_string());
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program().unwrap();
