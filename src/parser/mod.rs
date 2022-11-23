@@ -340,7 +340,8 @@ impl Parser {
         | TokenType::Minus
         | TokenType::Or
         | TokenType::And
-        | TokenType::Xor = self.curr.token
+        | TokenType::Xor
+        | TokenType::Mod = self.curr.token
         {
             let op = self.advance();
             let right = self.factor()?;

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    object::Function, visitor, Environment, ErrorInfo, Expr, Interpretor, Object, Span, Stmt,
+    object::Function, visitor, Environment, Error, ErrorInfo, Expr, Interpretor, Object, Span, Stmt,
 };
 
 impl visitor::Stmt for Interpretor {
@@ -44,11 +44,22 @@ impl visitor::Stmt for Interpretor {
     }
 
     fn visit_return_stmt(&mut self, value: &Option<Expr>, span: &Span) -> Result<(), ErrorInfo> {
-        todo!();
+        Err(ErrorInfo::new_with_span(
+            Error::Return(if let Some(expr) = value {
+                self.eval(expr)?
+            } else {
+                Object::Nil
+            }),
+            span.to_owned(),
+        ))
     }
     fn visit_block_stmt(&mut self, stmts: &Vec<Stmt>) -> Result<(), ErrorInfo> {
-        self.exec_block(stmts,
-            Rc::new(RefCell::new(Environment::new_from_closure(&self.environment))))
+        self.exec_block(
+            stmts,
+            Rc::new(RefCell::new(Environment::new_from_closure(
+                &self.environment,
+            ))),
+        )
     }
 
     fn visit_if_stmt(
