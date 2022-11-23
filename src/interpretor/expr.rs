@@ -1,4 +1,4 @@
-use crate::{visitor, ErrorInfo, Expr, Interpretor, LiteralType, Object, Span, TokenType, TokenInfo};
+use crate::{visitor, ErrorInfo, Expr, Interpretor, LiteralType, Object, Span, TokenType, TokenInfo, Error};
 
 impl visitor::Expr for Interpretor {
     fn visit_literal_expr(&mut self, value: &LiteralType) -> Result<Object, ErrorInfo> {
@@ -59,7 +59,13 @@ impl visitor::Expr for Interpretor {
         for arg in args {
             arguments.push(self.eval(arg)?);
         }
-        todo!();
+        match callee {
+            Object::Function(f) => f.call(self, &arguments),
+            x => Err(ErrorInfo::new_with_span(
+                Error::Type(format!("{x} is not callable")),
+                span.to_owned(),
+            )),
+        }
     }
 
     fn visit_get_expr(

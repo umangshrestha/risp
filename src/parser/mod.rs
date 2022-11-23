@@ -101,13 +101,16 @@ impl Parser {
             }
         }
         self.should_be(TokenType::RParen)?;
-        let body = self.block_statement()?;
-        Ok(Stmt::Function {
-            name,
-            params: params,
-            body: Box::new(body),
-            span,
-        })
+        if let Stmt::Block { stmts: body } = self.block_statement()? {
+            Ok(Stmt::Function {
+                name,
+                params,
+                body,
+                span,
+            })
+        } else {
+            unreachable!()
+        }
     }
 
     fn statement(&mut self) -> Result<Stmt, ErrorInfo> {
@@ -386,7 +389,7 @@ impl Parser {
                 break Ok(Expr::Call {
                     callee: Box::new(expr),
                     args,
-                    span
+                    span,
                 });
             } else if self.curr.is(TokenType::Dot) {
                 self.advance();
@@ -394,7 +397,7 @@ impl Parser {
                 expr = Expr::Get {
                     object: Box::new(expr),
                     name,
-                    span
+                    span,
                 };
             } else {
                 break Ok(expr);
@@ -404,6 +407,7 @@ impl Parser {
 
     fn get_argument_list(&mut self) -> Result<Vec<Expr>, ErrorInfo> {
         let mut args = Vec::new();
+        self.should_be(TokenType::LParen)?;
         if !self.curr.is(TokenType::RParen) {
             loop {
                 if args.len() >= 127 {

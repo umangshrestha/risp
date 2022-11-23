@@ -2,3 +2,5 @@ fn helloWorld() {
     print "Hello, World!";
 }
 
+
+helloWorld();

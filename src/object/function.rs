@@ -1,7 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{Environment, Interpretor, Object, Span, Stmt};
+use crate::{Environment, Error, ErrorInfo, Interpretor, Object, Span, Stmt, environment};
 
+#[derive(Debug, PartialEq, Clone)]
 pub enum Function {
     Inbuilt {
         arity: usize,
@@ -10,9 +11,11 @@ pub enum Function {
 
     User {
         name: String,
-        span: Span,
-        params: Vec<Stmt>,
+        params: Vec<String>,
+        body: Vec<Stmt>,
         closure: Rc<RefCell<Environment>>,
+        is_initializer: bool,
+        span: Span,
     },
 }
 
@@ -24,17 +27,37 @@ impl Function {
         }
     }
 
-    fn call(interpreter: &mut Interpretor, arguments: Vec<Object>) -> Object {
+    pub fn call(
+        &self,
+        interpreter: &mut Interpretor,
+        args: &Vec<Object>,
+    ) -> Result<Object, ErrorInfo> {
         match self {
-            Function::Inbuilt { func, .. } => func(arguments),
-            Function::User { params, closure, .. } => {
-                let mut environment = Environment::new_with_enclosing(closure.clone());
-                for (param, argument) in params.iter().zip(arguments) {
-                    environment.define(param.name.clone(), argument);
+            Function::Inbuilt { func, .. } => Ok(func(args.to_vec())?),
+            Function::User {
+                params,
+                body,
+                closure,
+                ..
+            } => {
+                let mut environment = Environment::new_from_closure(closure);
+                for (param, argument) in params.iter().zip(args) {
+                    environment
+                        .define(param
+                            .clone(), argument.to_owned(), false);
                 }
-                interpreter.execute_block(&self.body, environment);
+                let environment = Rc::new(RefCell::new(environment));
+                match  interpreter.exec_block(body, environment) {
+                Ok(()) => Ok(Object::Nil),
+                Err(x) => {
+                    if let Error::Return(value) = x.error {
+                        Ok(value)
+                    } else {
+                        Err(x)
+                    }                }
+                }
+               
             }
         }
     }
-
 }

@@ -34,7 +34,7 @@ pub enum Stmt {
     Function {
         name: String,
         params: Vec<String>,
-        body: Box<Stmt>,
+        body: Vec<Stmt>,
         span: Span,
     },
     Return {
@@ -111,11 +111,11 @@ impl fmt::Display for Stmt {
             }
             Stmt::Block { stmts } => {
                 let mut s = String::new();
-                s.push_str("(");
+                write!(f, "(")?;
                 for stmt in stmts {
-                    s.push_str(&format!("{}", stmt));
+                    write!(f, "{}", stmt)?;
                 }
-                write!(f, "{})", s)
+                write!(f, ")")
             }
             Stmt::If {
                 condition,
@@ -136,16 +136,14 @@ impl fmt::Display for Stmt {
                 span: _,
             } => {
                 let mut s = String::new();
-                s.push_str(&format!("fun {} (", name));
+                write!(f, "function {name} (")?;
                 for (i, param) in params.iter().enumerate() {
                     if i != 0 {
-                        s.push_str(", ");
+                        write!(f, ", ")?;
                     }
-                    s.push_str(param);
+                    write!(f, "{param}")?;
                 }
-                s.push_str(") ");
-                s.push_str(&format!("{}", body));
-                write!(f, "{}", s)
+                write!(f, ") ")
             }
             Stmt::Return { value, span: _ } => {
                 if let Some(value) = value {

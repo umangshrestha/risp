@@ -5,7 +5,7 @@ use crate::Span;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ErrorInfo {
-    error: Error,
+    pub error: Error,
     span: Span,
 }
 

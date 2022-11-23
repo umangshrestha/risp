@@ -14,6 +14,7 @@ impl Object {
             Object::Boolean(b) => *b,
             Object::Number(n) => *n != 0.0,
             Object::String(s) => !s.is_empty(),
+            _ => true,
         }
     }
 

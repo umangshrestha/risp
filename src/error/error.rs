@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::Object;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
     Syntax(String),
@@ -8,7 +10,9 @@ pub enum Error {
     Runtime(String),
     Name(String),
     ZeroDivision,
-    TooManyParamerters
+    TooManyParamerters,
+    Return(Object),
+    Type(String),
 }
 
 impl fmt::Display for Error {
@@ -21,6 +25,8 @@ impl fmt::Display for Error {
             Error::ZeroDivision => write!(f, "ZeroDivisionError: division by zero"),
             Error::Name(x) => write!(f, "NameError: undefined variable \"{x}\""),
             Error::TooManyParamerters => write!(f, "TooManyParamerters: excedded maximum number of parameters"),
+            Error:: Return(x) => write!(f, "return {x}"),
+            Error::Type(x) => write!(f, "TypeError: {x}"),
         }
     }
 }

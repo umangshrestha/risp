@@ -2,19 +2,27 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{Error, Object};
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Environment {
     values: HashMap<String, (Object, bool)>,
     enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
 impl Environment {
-    pub fn new() -> Self {
+    pub fn new() -> Environment {
         Self {
             values: HashMap::new(),
             enclosing: None,
         }
     }
-    
+
+    pub fn new_from_closure(enclosing: &Rc<RefCell<Environment>>) -> Self {
+        Self {
+            values: HashMap::new(),
+            enclosing: Some(Rc::clone(enclosing)),
+        }
+    }
+
     pub fn define(&mut self, name: String, value: Object, is_const: bool) -> Result<(), Error> {
         if is_const && value.is_nil() {
             return Err(Error::Syntax(
@@ -49,7 +57,8 @@ impl Environment {
                     "cannot reassign to a constant variable".to_string(),
                 ));
             }
-            self.values.insert(name.to_string(), (value.clone(), *is_const));
+            self.values
+                .insert(name.to_string(), (value.clone(), *is_const));
             return Ok(value);
         } else if let Some(enclosing) = &self.enclosing {
             enclosing.borrow_mut().assign(name, value)
@@ -59,25 +68,31 @@ impl Environment {
     }
 }
 
-
 #[cfg(test)]
 mod test {
-    use crate::{Object, Environment};
+    use crate::{Environment, Object};
 
     #[test]
     fn test_assign() {
         let mut env = Environment::new();
-        env.define("a".to_string(), Object::Nil, false).unwrap();
+        env
+            .define("a".to_string(), Object::Nil, false)
+            .unwrap();
         assert_eq!(env.get(&"a".to_string()).unwrap(), Object::Nil);
 
-        env.assign(&"a".to_string(), Object::Number(1.0)).unwrap();
-        assert_eq!(env.get(&"a".to_string()).unwrap(), Object::Number(1.0));
+        env
+            .assign(&"a".to_string(), Object::Number(1.0))
+            .unwrap();
+        assert_eq!(
+            env.get(&"a".to_string()).unwrap(),
+            Object::Number(1.0)
+        );
     }
 
     #[test]
     fn test_const_with_nil() {
         let mut env = Environment::new();
-        let out =env.define("a".to_string(), Object::Nil, true);
+        let out = env.define("a".to_string(), Object::Nil, true);
         assert!(out.is_err());
     }
 }

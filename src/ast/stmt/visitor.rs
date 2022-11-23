@@ -8,7 +8,7 @@ pub trait Visitor {
         &mut self,
         name: &String,
         params: &Vec<String>,
-        body: &Box<Stmt>,
+        body: &Vec<Stmt>,
         span: &Span,
     ) -> Result<(), ErrorInfo>;
     fn visit_if_stmt(
